@@ -686,7 +686,12 @@ html, body {
 }
 
 .kanni-diff-line:hover {
-  background: var(--k-surface-2) !important;
+  background: var(--k-surface-2);
+}
+
+.kanni-diff-line.addition:hover,
+.kanni-diff-line.deletion:hover {
+  background: var(--k-surface-2);
 }
 
 .kanni-diff-line.addition {
@@ -989,7 +994,7 @@ html, body {
   color: var(--k-danger);
 }
 
-/* ── Generic input (unused atm but keeping) ──────────────────── */
+/* ── Generic input (reserved for future use; not currently rendered) ── */
 
 .kanni-input {
   background: var(--k-surface-1);

@@ -34,31 +34,28 @@ defmodule KanniWeb.ActivityComponent do
           </button>
         </div>
 
-        <%= if entry.type == :files_changed and not entry.collapsed do %>
-          <div class="kanni-activity-files">
-            <div
-              :for={file <- entry.files}
-              class="kanni-activity-file"
-              phx-click="activity_select_file"
-              phx-value-repo-path={entry.repo_path}
-              phx-value-tab="changes"
-            >
-              {file}
-            </div>
+        <div
+          :if={entry.type == :files_changed and not entry.collapsed}
+          class="kanni-activity-files"
+        >
+          <div
+            :for={file <- entry.files}
+            class="kanni-activity-file"
+            phx-click="activity_select_file"
+            phx-value-repo-path={entry.repo_path}
+            phx-value-tab="changes"
+          >
+            {file}
           </div>
-        <% end %>
+        </div>
 
-        <%= if entry.type == :commit do %>
-          <div class="kanni-activity-detail">
-            {commit_detail(entry.detail)}
-          </div>
-        <% end %>
+        <div :if={entry.type == :commit} class="kanni-activity-detail">
+          {commit_detail(entry.detail)}
+        </div>
 
-        <%= if entry.type == :branch_switched do %>
-          <div class="kanni-activity-detail">
-            {entry.detail[:from]} → {entry.detail[:to]}
-          </div>
-        <% end %>
+        <div :if={entry.type == :branch_switched} class="kanni-activity-detail">
+          {entry.detail[:from]} → {entry.detail[:to]}
+        </div>
       </div>
     </div>
     """
@@ -74,6 +71,7 @@ defmodule KanniWeb.ActivityComponent do
   defp type_icon(:commit), do: "●"
   defp type_icon(:branch_switched), do: "⎇"
   defp type_icon(:repo_status), do: "◈"
+  defp type_icon(_), do: "?"
 
   defp commit_detail(%{files_committed: n, branch: branch}) do
     "#{n} file#{if n == 1, do: "", else: "s"} on #{branch}"

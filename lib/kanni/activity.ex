@@ -138,7 +138,7 @@ defmodule Kanni.Activity do
 
   defp maybe_detect_commit(entries, old, new) do
     # Dirty count dropped to 0 (or decreased significantly) → likely a commit
-    if old.dirty_count > 0 and new.dirty_count == 0 and old.branch == new.branch do
+    if old.dirty_count > 0 and new.dirty_count == 0 and new.branch != nil and old.branch == new.branch do
       entry = %Entry{
         id: generate_id(),
         type: :commit,
@@ -170,7 +170,8 @@ defmodule Kanni.Activity do
 
         [entry | entries]
 
-      # Don't emit clean status if we already emitted a commit entry for the same transition
+      # Emit 'clean' status only on branch switch; for dirty→clean on the same
+      # branch, the commit entry detected above already represents that transition.
       old.dirty_count > 0 and new.dirty_count == 0 and old.branch != new.branch ->
         entry = %Entry{
           id: generate_id(),
