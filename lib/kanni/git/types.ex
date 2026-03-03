@@ -48,6 +48,39 @@ defmodule Kanni.Git.Types do
     defstruct [:branch, deltas: [], ahead: 0, behind: 0]
   end
 
+  defmodule Diff do
+    @moduledoc "A file diff with hunks."
+    @type t :: %__MODULE__{
+            path: String.t(),
+            hunks: [Hunk.t()]
+          }
+    defstruct [:path, hunks: []]
+  end
+
+  defmodule Hunk do
+    @moduledoc "A diff hunk with header and lines."
+    @type t :: %__MODULE__{
+            header: String.t(),
+            old_start: non_neg_integer(),
+            old_lines: non_neg_integer(),
+            new_start: non_neg_integer(),
+            new_lines: non_neg_integer(),
+            lines: [DiffLine.t()]
+          }
+    defstruct [:header, :old_start, :old_lines, :new_start, :new_lines, lines: []]
+  end
+
+  defmodule DiffLine do
+    @moduledoc "A single line in a diff."
+    @type t :: %__MODULE__{
+            origin: String.t(),
+            content: String.t(),
+            old_lineno: non_neg_integer() | nil,
+            new_lineno: non_neg_integer() | nil
+          }
+    defstruct [:origin, :content, :old_lineno, :new_lineno]
+  end
+
   defmodule GraphNode do
     @moduledoc "A positioned commit node in the graph layout."
     @type t :: %__MODULE__{

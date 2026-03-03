@@ -3,6 +3,7 @@ use std::fmt;
 
 /// Unified error type for all kanni_git NIF operations.
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum KanniError {
     Git(git2::Error),
     InvalidHandle,

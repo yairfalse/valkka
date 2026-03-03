@@ -43,6 +43,30 @@ defmodule Kanni.Git.CLI do
     end
   end
 
+  @doc "Push current branch to origin."
+  @spec push(String.t()) :: {:ok, String.t()} | {:error, term()}
+  def push(repo_path) do
+    run(repo_path, ["push"])
+  end
+
+  @doc "Get configured user name and email."
+  @spec user_config(String.t()) :: {String.t(), String.t()}
+  def user_config(repo_path) do
+    name =
+      case run(repo_path, ["config", "user.name"]) do
+        {:ok, n} -> n
+        _ -> "Unknown"
+      end
+
+    email =
+      case run(repo_path, ["config", "user.email"]) do
+        {:ok, e} -> e
+        _ -> "unknown@unknown"
+      end
+
+    {name, email}
+  end
+
   @doc "List all branches with their head commits."
   @spec branches(String.t()) :: {:ok, [Kanni.Git.Types.Branch.t()]} | {:error, term()}
   def branches(repo_path) do

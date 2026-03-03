@@ -13,13 +13,24 @@ defmodule Kanni.Application do
       Kanni.Cache.GraphCache,
       Kanni.Cache.CommitCache,
       Kanni.Cache.StatusCache,
+      Kanni.Plugin.Registry,
+      Kanni.Plugin.Supervisor,
+      {Registry, keys: :unique, name: Kanni.Repo.Registry},
       Kanni.Repo.Supervisor,
       Kanni.Watcher.Handler,
       KanniWeb.Endpoint
     ]
 
     opts = [strategy: :one_for_one, name: Kanni.Supervisor]
-    Supervisor.start_link(children, opts)
+    result = Supervisor.start_link(children, opts)
+
+    # Start plugin child processes and scan workspace after boot
+    Task.Supervisor.start_child(Kanni.TaskSupervisor, fn ->
+      Kanni.Plugin.Supervisor.start_plugins()
+      Kanni.Workspace.scan()
+    end)
+
+    result
   end
 
   @impl true

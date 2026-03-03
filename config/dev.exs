@@ -70,6 +70,12 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
+# Kanni workspace configuration
+config :kanni,
+  workspace_roots: ["~/projects"],
+  scan_depth: 1,
+  plugins: []
+
 config :phoenix_live_view,
   # Include debug annotations and locations in rendered markup.
   # Changing this configuration will require mix clean and a full recompile.
