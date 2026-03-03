@@ -1,7 +1,6 @@
 defmodule KanniWeb.ActivityComponent do
   @moduledoc """
-  Activity stream showing live file events across all repos.
-  Ring buffer of last 50 events, newest first.
+  Curated activity stream with grouped, typed, actionable entries.
   """
 
   use KanniWeb, :live_component
@@ -10,33 +9,75 @@ defmodule KanniWeb.ActivityComponent do
   def render(assigns) do
     ~H"""
     <div class="kanni-activity">
-      <div :if={@events == []} class="kanni-empty">
+      <div :if={@entries == []} class="kanni-empty">
         No activity yet. Changes will appear here as files are modified.
       </div>
-      <div :for={event <- @events} class="kanni-activity-event">
-        <span class="kanni-activity-time">{format_time(event.time)}</span>
-        <span class="kanni-activity-repo">{event.repo}</span>
-        <span class="kanni-activity-path">{relative_path(event.path, event.repo)}</span>
-        <span class="kanni-activity-events">{format_events(event.events)}</span>
+      <div :for={entry <- @entries} class={"kanni-activity-entry type-#{entry.type}"}>
+        <div class="kanni-activity-entry-header">
+          <span class="kanni-activity-icon">{type_icon(entry.type)}</span>
+          <span class="kanni-activity-time">{format_time(entry.timestamp)}</span>
+          <span
+            class="kanni-activity-repo"
+            phx-click="activity_select_repo"
+            phx-value-path={entry.repo_path}
+          >
+            {entry.repo}
+          </span>
+          <span class="kanni-activity-summary">{entry.summary}</span>
+          <button
+            :if={entry.type == :files_changed and length(entry.files) > 0}
+            class="kanni-activity-toggle"
+            phx-click="toggle_activity_entry"
+            phx-value-id={entry.id}
+          >
+            {if entry.collapsed, do: "▸", else: "▾"}
+          </button>
+        </div>
+
+        <%= if entry.type == :files_changed and not entry.collapsed do %>
+          <div class="kanni-activity-files">
+            <div
+              :for={file <- entry.files}
+              class="kanni-activity-file"
+              phx-click="activity_select_file"
+              phx-value-repo-path={entry.repo_path}
+              phx-value-tab="changes"
+            >
+              {file}
+            </div>
+          </div>
+        <% end %>
+
+        <%= if entry.type == :commit do %>
+          <div class="kanni-activity-detail">
+            {commit_detail(entry.detail)}
+          </div>
+        <% end %>
+
+        <%= if entry.type == :branch_switched do %>
+          <div class="kanni-activity-detail">
+            {entry.detail[:from]} → {entry.detail[:to]}
+          </div>
+        <% end %>
       </div>
     </div>
     """
   end
 
+  defp format_time(nil), do: ""
+
   defp format_time(dt) do
     Calendar.strftime(dt, "%H:%M:%S")
   end
 
-  defp relative_path(path, _repo) do
-    path
-    |> Path.basename()
+  defp type_icon(:files_changed), do: "◇"
+  defp type_icon(:commit), do: "●"
+  defp type_icon(:branch_switched), do: "⎇"
+  defp type_icon(:repo_status), do: "◈"
+
+  defp commit_detail(%{files_committed: n, branch: branch}) do
+    "#{n} file#{if n == 1, do: "", else: "s"} on #{branch}"
   end
 
-  defp format_events(events) when is_list(events) do
-    events
-    |> Enum.map(&to_string/1)
-    |> Enum.join(", ")
-  end
-
-  defp format_events(_), do: ""
+  defp commit_detail(_), do: ""
 end

@@ -748,26 +748,50 @@ html, body {
 
 .kanni-activity {
   font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.kanni-activity-event {
-  display: flex;
-  gap: 10px;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--k-border);
-  align-items: baseline;
+.kanni-activity-entry {
+  border-radius: var(--k-radius-sm);
   transition: background var(--k-duration) var(--k-ease);
 }
 
-.kanni-activity-event:hover {
+.kanni-activity-entry:hover {
   background: var(--k-surface-1);
-  margin: 0 -0.75rem;
-  padding: 4px 0.75rem;
-  border-radius: var(--k-radius-sm);
 }
 
-.kanni-activity-event:last-child {
-  border-bottom: none;
+.kanni-activity-entry-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+}
+
+.kanni-activity-icon {
+  font-size: 10px;
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+  color: var(--k-text-dim);
+}
+
+/* Type-specific icon colors */
+.kanni-activity-entry.type-files_changed .kanni-activity-icon {
+  color: var(--k-warning);
+}
+
+.kanni-activity-entry.type-commit .kanni-activity-icon {
+  color: var(--k-accent);
+}
+
+.kanni-activity-entry.type-branch_switched .kanni-activity-icon {
+  color: var(--k-purple);
+}
+
+.kanni-activity-entry.type-repo_status .kanni-activity-icon {
+  color: var(--k-info);
 }
 
 .kanni-activity-time {
@@ -784,14 +808,20 @@ html, body {
   color: var(--k-accent);
   font-weight: 500;
   flex-shrink: 0;
-  width: 100px;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 11px;
+  cursor: pointer;
+  transition: opacity var(--k-duration) var(--k-ease);
 }
 
-.kanni-activity-path {
+.kanni-activity-repo:hover {
+  opacity: 0.8;
+}
+
+.kanni-activity-summary {
   color: var(--k-text-secondary);
   flex: 1;
   overflow: hidden;
@@ -800,10 +830,53 @@ html, body {
   font-weight: 300;
 }
 
-.kanni-activity-events {
-  color: var(--k-text-ghost);
-  font-size: 10px;
+.kanni-activity-toggle {
+  background: none;
+  border: none;
+  color: var(--k-text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 0 4px;
   flex-shrink: 0;
+  transition: color var(--k-duration) var(--k-ease);
+}
+
+.kanni-activity-toggle:hover {
+  color: var(--k-text);
+}
+
+/* Expandable file list */
+.kanni-activity-files {
+  padding: 2px 8px 6px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.kanni-activity-file {
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--k-text-secondary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background var(--k-duration) var(--k-ease),
+              color var(--k-duration) var(--k-ease);
+}
+
+.kanni-activity-file:hover {
+  background: var(--k-accent-soft);
+  color: var(--k-accent);
+}
+
+/* Detail line (commit info, branch transition) */
+.kanni-activity-detail {
+  font-size: 10px;
+  font-weight: 300;
+  color: var(--k-text-dim);
+  padding: 0 8px 4px 30px;
+  letter-spacing: 0.02em;
 }
 
 /* ── Commit Form ─────────────────────────────────────────────── */

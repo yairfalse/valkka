@@ -14,6 +14,7 @@ defmodule KanniWeb.DashboardLive do
   import KanniWeb.Components.ContextPanel
 
   alias Kanni.Git.Log
+  alias Kanni.Activity
 
   @impl true
   def mount(_params, _session, socket) do
@@ -23,6 +24,10 @@ defmodule KanniWeb.DashboardLive do
     end
 
     repos = Kanni.Workspace.list_repos()
+
+    # Build initial prev_repo_states from current repo list
+    prev_states =
+      Map.new(repos, fn r -> {r.path, r} end)
 
     {:ok,
      assign(socket,
@@ -37,6 +42,9 @@ defmodule KanniWeb.DashboardLive do
        context: nil,
        handle: nil,
        activity: [],
+       activity_buffer: %{},
+       activity_timer: nil,
+       prev_repo_states: prev_states,
        kerto_status: Kanni.Context.status(),
        plugin_panels: collect_plugin_panels()
      )}
@@ -93,7 +101,7 @@ defmodule KanniWeb.DashboardLive do
             <.live_component
               module={KanniWeb.ActivityComponent}
               id="activity"
-              events={@activity}
+              entries={@activity}
             />
           </:activity>
         </.focus_panel>
@@ -112,6 +120,23 @@ defmodule KanniWeb.DashboardLive do
   @impl true
   def handle_event("select_repo", %{"path" => path}, socket) do
     {:noreply, push_patch(socket, to: "/?repo=#{URI.encode(path)}")}
+  end
+
+  def handle_event("toggle_activity_entry", %{"id" => id}, socket) do
+    {:noreply, assign(socket, activity: Activity.toggle_entry(socket.assigns.activity, id))}
+  end
+
+  def handle_event("activity_select_repo", %{"path" => path}, socket) do
+    {:noreply, push_patch(socket, to: "/?repo=#{URI.encode(path)}")}
+  end
+
+  def handle_event("activity_select_file", %{"repo-path" => repo_path, "tab" => tab}, socket) do
+    socket =
+      socket
+      |> push_patch(to: "/?repo=#{URI.encode(repo_path)}")
+      |> assign(active_tab: tab)
+
+    {:noreply, socket}
   end
 
   def handle_event("switch_tab", %{"tab" => tab}, socket) do
@@ -145,7 +170,15 @@ defmodule KanniWeb.DashboardLive do
 
   def handle_info({:repo_state_changed, repo_state}, socket) do
     repos = update_repo_in_list(socket.assigns.repos, repo_state)
-    socket = assign(socket, repos: repos)
+
+    # Detect state changes for activity stream
+    old_state = Map.get(socket.assigns.prev_repo_states, repo_state.path)
+    change_entries = Activity.detect_state_changes(old_state, repo_state)
+    prev_states = Map.put(socket.assigns.prev_repo_states, repo_state.path, repo_state)
+
+    activity = Activity.prepend(socket.assigns.activity, change_entries)
+
+    socket = assign(socket, repos: repos, activity: activity, prev_repo_states: prev_states)
 
     socket =
       if socket.assigns.selected_path == repo_state.path do
@@ -157,19 +190,26 @@ defmodule KanniWeb.DashboardLive do
     {:noreply, socket}
   end
 
-  def handle_info({:file_changed, path, events}, socket) do
-    event = %{
-      time: DateTime.utc_now(),
-      path: path,
-      events: events,
-      repo: repo_name_for_path(path, socket.assigns.repos)
-    }
+  def handle_info({:file_changed, path, _events}, socket) do
+    {repo_name, repo_path} = repo_info_for_path(path, socket.assigns.repos)
+    buffer = Activity.buffer_file_change(socket.assigns.activity_buffer, repo_path, repo_name, path)
 
-    activity =
-      [event | socket.assigns.activity]
-      |> Enum.take(50)
+    # Start debounce timer if not already running
+    timer =
+      if socket.assigns.activity_timer do
+        socket.assigns.activity_timer
+      else
+        Process.send_after(self(), :flush_activity, Activity.window_ms())
+      end
 
-    {:noreply, assign(socket, activity: activity)}
+    {:noreply, assign(socket, activity_buffer: buffer, activity_timer: timer)}
+  end
+
+  def handle_info(:flush_activity, socket) do
+    {new_entries, buffer} = Activity.flush_buffer(socket.assigns.activity_buffer)
+    activity = Activity.prepend(socket.assigns.activity, new_entries)
+
+    {:noreply, assign(socket, activity: activity, activity_buffer: buffer, activity_timer: nil)}
   end
 
   def handle_info(_msg, socket) do
@@ -265,9 +305,9 @@ defmodule KanniWeb.DashboardLive do
     end
   end
 
-  defp repo_name_for_path(file_path, repos) do
-    Enum.find_value(repos, Path.basename(file_path), fn repo ->
-      if String.starts_with?(file_path, repo.path), do: repo.name
+  defp repo_info_for_path(file_path, repos) do
+    Enum.find_value(repos, {Path.basename(file_path), file_path}, fn repo ->
+      if String.starts_with?(file_path, repo.path), do: {repo.name, repo.path}
     end)
   end
 
