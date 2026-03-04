@@ -36,6 +36,36 @@ defmodule KanniWeb.ChangesComponent do
     {:ok, socket}
   end
 
+  def update(%{action: :stage_focused}, socket) do
+    case {socket.assigns.selected_file, socket.assigns.selected_section} do
+      {file, section} when file != nil and section in ["unstaged", "untracked"] ->
+        case Kanni.Git.Native.repo_stage(socket.assigns.handle, file) do
+          {:error, reason} -> send(self(), {:flash, :error, "Stage failed: #{reason}"})
+          _ -> :ok
+        end
+
+        {:ok, reload_status(socket)}
+
+      _ ->
+        {:ok, socket}
+    end
+  end
+
+  def update(%{action: :unstage_focused}, socket) do
+    case {socket.assigns.selected_file, socket.assigns.selected_section} do
+      {file, "staged"} when file != nil ->
+        case Kanni.Git.Native.repo_unstage(socket.assigns.handle, file) do
+          {:error, reason} -> send(self(), {:flash, :error, "Unstage failed: #{reason}"})
+          _ -> :ok
+        end
+
+        {:ok, reload_status(socket)}
+
+      _ ->
+        {:ok, socket}
+    end
+  end
+
   def update(assigns, socket) do
     {:ok, assign(socket, assigns)}
   end
@@ -155,6 +185,8 @@ defmodule KanniWeb.ChangesComponent do
 
   @impl true
   def handle_event("select_file", %{"path" => path, "section" => section}, socket) do
+    send(self(), {:file_selected, path, socket.assigns.repo_path})
+
     socket =
       socket
       |> assign(selected_file: path, selected_section: section)
@@ -164,12 +196,20 @@ defmodule KanniWeb.ChangesComponent do
   end
 
   def handle_event("stage", %{"path" => path}, socket) do
-    Kanni.Git.Native.repo_stage(socket.assigns.handle, path)
+    case Kanni.Git.Native.repo_stage(socket.assigns.handle, path) do
+      {:error, reason} -> send(self(), {:flash, :error, "Stage failed: #{reason}"})
+      _ -> :ok
+    end
+
     {:noreply, reload_status(socket)}
   end
 
   def handle_event("unstage", %{"path" => path}, socket) do
-    Kanni.Git.Native.repo_unstage(socket.assigns.handle, path)
+    case Kanni.Git.Native.repo_unstage(socket.assigns.handle, path) do
+      {:error, reason} -> send(self(), {:flash, :error, "Unstage failed: #{reason}"})
+      _ -> :ok
+    end
+
     {:noreply, reload_status(socket)}
   end
 

@@ -11,6 +11,25 @@ defmodule KanniWeb.CommitComponent do
   end
 
   @impl true
+  def update(%{action: :push}, socket) do
+    if socket.assigns.pushing do
+      {:ok, socket}
+    else
+      socket = assign(socket, pushing: true, result: nil)
+
+      case Kanni.Git.CLI.push(socket.assigns.repo_path) do
+        {:ok, _} ->
+          send(self(), {:push_completed, socket.assigns.repo_path})
+          send(self(), {:flash, :info, "Pushed to origin"})
+          {:ok, assign(socket, pushing: false, result: {:ok, "Pushed"})}
+
+        {:error, {msg, _}} ->
+          send(self(), {:flash, :error, "Push failed: #{msg}"})
+          {:ok, assign(socket, pushing: false, result: {:error, "Push failed: #{msg}"})}
+      end
+    end
+  end
+
   def update(assigns, socket) do
     {:ok, assign(socket, Map.take(assigns, [:repo_path, :handle, :id, :has_staged]))}
   end
@@ -41,6 +60,7 @@ defmodule KanniWeb.CommitComponent do
             phx-click="push"
             phx-target={@myself}
             disabled={@pushing}
+            data-confirm="Push to origin?"
           >
             {if @pushing, do: "Pushing...", else: "Push"}
           </button>
@@ -72,6 +92,7 @@ defmodule KanniWeb.CommitComponent do
           short = String.slice(oid, 0, 7)
 
           send(self(), {:refresh_changes, socket.assigns.repo_path})
+          send(self(), {:flash, :info, "Committed #{short}"})
 
           {:noreply,
            assign(socket,
@@ -81,6 +102,8 @@ defmodule KanniWeb.CommitComponent do
            )}
 
         {:error, reason} ->
+          send(self(), {:flash, :error, "Commit failed: #{reason}"})
+
           {:noreply,
            assign(socket, committing: false, result: {:error, "Commit failed: #{reason}"})}
       end
@@ -92,9 +115,12 @@ defmodule KanniWeb.CommitComponent do
 
     case Kanni.Git.CLI.push(socket.assigns.repo_path) do
       {:ok, _} ->
+        send(self(), {:push_completed, socket.assigns.repo_path})
+        send(self(), {:flash, :info, "Pushed to origin"})
         {:noreply, assign(socket, pushing: false, result: {:ok, "Pushed"})}
 
       {:error, {msg, _}} ->
+        send(self(), {:flash, :error, "Push failed: #{msg}"})
         {:noreply, assign(socket, pushing: false, result: {:error, "Push failed: #{msg}"})}
     end
   end

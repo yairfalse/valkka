@@ -9,6 +9,7 @@ struct HeadInfo {
     is_detached: bool,
     ahead: usize,
     behind: usize,
+    head_oid: Option<String>,
 }
 
 /// Get head info for an open repository: current branch, ahead/behind counts.
@@ -27,6 +28,7 @@ pub fn repo_head_info(handle: ResourceArc<RepoHandle>) -> NifResult<String> {
                 is_detached: false,
                 ahead: 0,
                 behind: 0,
+                head_oid: None,
             };
             return serde_json::to_string(&info).map_err(|e| {
                 rustler::Error::Term(Box::new(format!("json: {}", e)))
@@ -41,6 +43,7 @@ pub fn repo_head_info(handle: ResourceArc<RepoHandle>) -> NifResult<String> {
         head.shorthand().map(|s| s.to_string())
     };
 
+    let head_oid = head.target().map(|oid| oid.to_string());
     let (ahead, behind) = compute_ahead_behind(&repo, &head);
 
     let info = HeadInfo {
@@ -48,6 +51,7 @@ pub fn repo_head_info(handle: ResourceArc<RepoHandle>) -> NifResult<String> {
         is_detached,
         ahead,
         behind,
+        head_oid,
     };
 
     serde_json::to_string(&info).map_err(|e| {

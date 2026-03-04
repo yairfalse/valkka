@@ -9,7 +9,7 @@ defmodule Kanni.Activity do
   defmodule Entry do
     @moduledoc "A single curated activity entry."
 
-    @type entry_type :: :files_changed | :commit | :branch_switched | :repo_status
+    @type entry_type :: :files_changed | :commit | :branch_switched | :repo_status | :pushed
 
     @type t :: %__MODULE__{
             id: String.t(),
@@ -137,15 +137,22 @@ defmodule Kanni.Activity do
   end
 
   defp maybe_detect_commit(entries, old, new) do
-    # Dirty count dropped to 0 (or decreased significantly) → likely a commit
-    if old.dirty_count > 0 and new.dirty_count == 0 and new.branch != nil and old.branch == new.branch do
+    # Detect real commit via HEAD OID change on the same branch
+    oid_changed =
+      old[:head_oid] != nil and new[:head_oid] != nil and
+        old.head_oid != new.head_oid and
+        new.branch != nil and old.branch == new.branch
+
+    if oid_changed do
+      {summary, detail} = fetch_commit_info(new.path, new.head_oid, new.branch, old.dirty_count)
+
       entry = %Entry{
         id: generate_id(),
         type: :commit,
         repo: new.name,
         repo_path: new.path,
-        summary: "committed on #{new.branch}",
-        detail: %{branch: new.branch, files_committed: old.dirty_count},
+        summary: summary,
+        detail: detail,
         timestamp: DateTime.utc_now()
       }
 
@@ -153,6 +160,32 @@ defmodule Kanni.Activity do
     else
       entries
     end
+  end
+
+  @doc false
+  def fetch_commit_info(repo_path, oid, branch, files_committed) do
+    case System.cmd("git", ["log", "-1", "--format=%H\0%s", oid],
+           cd: repo_path,
+           stderr_to_stdout: true
+         ) do
+      {output, 0} ->
+        case String.split(String.trim(output), "\0") do
+          [sha, message] ->
+            short = String.slice(sha, 0, 7)
+            {"#{short} #{message}", %{sha: sha, message: message, branch: branch, files_committed: files_committed}}
+
+          _ ->
+            fallback_commit_info(oid, branch, files_committed)
+        end
+
+      _ ->
+        fallback_commit_info(oid, branch, files_committed)
+    end
+  end
+
+  defp fallback_commit_info(oid, branch, files_committed) do
+    short = String.slice(oid, 0, 7)
+    {"#{short} committed on #{branch}", %{sha: oid, branch: branch, files_committed: files_committed}}
   end
 
   defp maybe_detect_status_change(entries, old, new) do
@@ -170,9 +203,10 @@ defmodule Kanni.Activity do
 
         [entry | entries]
 
-      # Emit 'clean' status only on branch switch; for dirty→clean on the same
-      # branch, the commit entry detected above already represents that transition.
-      old.dirty_count > 0 and new.dirty_count == 0 and old.branch != new.branch ->
+      # Emit 'clean' status only on branch switch or non-commit transitions;
+      # for dirty→clean on the same branch with OID change, the commit entry covers it.
+      old.dirty_count > 0 and new.dirty_count == 0 and
+          (old.branch != new.branch or old[:head_oid] == new[:head_oid]) ->
         entry = %Entry{
           id: generate_id(),
           type: :repo_status,

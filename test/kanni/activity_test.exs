@@ -75,18 +75,27 @@ defmodule Kanni.ActivityTest do
       refute Enum.any?(entries, &(&1.type == :branch_switched))
     end
 
-    test "detects commit when dirty count drops to zero on same branch" do
-      old = repo_state(branch: "main", dirty_count: 3)
-      new = repo_state(branch: "main", dirty_count: 0)
+    test "detects commit when head_oid changes on same branch" do
+      old = repo_state(branch: "main", head_oid: "aaa111", dirty_count: 3)
+      new = repo_state(branch: "main", head_oid: "bbb222", dirty_count: 0)
 
       entries = Activity.detect_state_changes(old, new)
 
-      assert [%Entry{type: :commit, summary: "committed on main"}] = entries
+      assert [%Entry{type: :commit}] = entries
+    end
+
+    test "does not detect commit when head_oid is unchanged" do
+      old = repo_state(branch: "main", head_oid: "aaa111", dirty_count: 3)
+      new = repo_state(branch: "main", head_oid: "aaa111", dirty_count: 0)
+
+      entries = Activity.detect_state_changes(old, new)
+
+      refute Enum.any?(entries, &(&1.type == :commit))
     end
 
     test "does not detect commit when branch is nil" do
-      old = repo_state(branch: nil, dirty_count: 3)
-      new = repo_state(branch: nil, dirty_count: 0)
+      old = repo_state(branch: nil, head_oid: "aaa111", dirty_count: 3)
+      new = repo_state(branch: nil, head_oid: "bbb222", dirty_count: 0)
 
       entries = Activity.detect_state_changes(old, new)
 
@@ -112,8 +121,8 @@ defmodule Kanni.ActivityTest do
     end
 
     test "does not emit repo_status clean when commit already covers it" do
-      old = repo_state(branch: "main", dirty_count: 3)
-      new = repo_state(branch: "main", dirty_count: 0)
+      old = repo_state(branch: "main", head_oid: "aaa111", dirty_count: 3)
+      new = repo_state(branch: "main", head_oid: "bbb222", dirty_count: 0)
 
       entries = Activity.detect_state_changes(old, new)
 
@@ -148,12 +157,23 @@ defmodule Kanni.ActivityTest do
     end
   end
 
+  describe "fetch_commit_info/4" do
+    test "falls back gracefully for invalid repo path" do
+      {summary, detail} = Activity.fetch_commit_info("/nonexistent", "abc123def", "main", 2)
+
+      assert summary =~ "abc123d"
+      assert detail.branch == "main"
+      assert detail.sha == "abc123def"
+    end
+  end
+
   defp repo_state(overrides \\ []) do
     %{
       path: "/repos/app",
       name: "app",
       branch: "main",
       dirty_count: 0,
+      head_oid: nil,
       ahead: 0,
       behind: 0,
       is_detached: false,

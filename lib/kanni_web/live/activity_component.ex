@@ -53,6 +53,10 @@ defmodule KanniWeb.ActivityComponent do
           {commit_detail(entry.detail)}
         </div>
 
+        <div :if={entry.type == :pushed} class="kanni-activity-detail">
+          {pushed_detail(entry.detail)}
+        </div>
+
         <div :if={entry.type == :branch_switched} class="kanni-activity-detail">
           {entry.detail[:from]} → {entry.detail[:to]}
         </div>
@@ -71,11 +75,20 @@ defmodule KanniWeb.ActivityComponent do
   defp type_icon(:commit), do: "●"
   defp type_icon(:branch_switched), do: "⎇"
   defp type_icon(:repo_status), do: "◈"
+  defp type_icon(:pushed), do: "↑"
   defp type_icon(_), do: "?"
+
+  defp commit_detail(%{sha: sha, message: msg, branch: branch}) when is_binary(sha) do
+    short = String.slice(sha, 0, 7)
+    "#{short} #{msg} · #{branch}"
+  end
 
   defp commit_detail(%{files_committed: n, branch: branch}) do
     "#{n} file#{if n == 1, do: "", else: "s"} on #{branch}"
   end
 
   defp commit_detail(_), do: ""
+
+  defp pushed_detail(%{branch: branch}) when is_binary(branch), do: "on #{branch}"
+  defp pushed_detail(_), do: ""
 end

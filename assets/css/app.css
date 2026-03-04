@@ -519,6 +519,24 @@ html, body {
   font-style: italic;
 }
 
+.kanni-file-context {
+  margin-bottom: var(--k-gap-md);
+  padding-bottom: var(--k-gap-md);
+  border-bottom: 1px solid var(--k-border);
+}
+
+.kanni-context-section-header {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--k-accent);
+  margin-bottom: var(--k-gap-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── Changes View ────────────────────────────────────────────── */
 
 .kanni-changes {
@@ -799,6 +817,10 @@ html, body {
   color: var(--k-info);
 }
 
+.kanni-activity-entry.type-pushed .kanni-activity-icon {
+  color: var(--k-accent);
+}
+
 .kanni-activity-time {
   color: var(--k-text-ghost);
   font-size: 10px;
@@ -992,6 +1014,28 @@ html, body {
 
 .kanni-commit-result.error {
   color: var(--k-danger);
+}
+
+/* ── Flash Toasts ────────────────────────────────────────────── */
+
+.toast .alert {
+  font-family: var(--k-font);
+  font-size: 12px;
+  border-radius: var(--k-radius-md);
+  border: 1px solid var(--k-border-strong);
+  background: var(--k-surface-2);
+  color: var(--k-text);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.toast .alert-info {
+  border-color: var(--k-border-accent);
+  background: var(--k-surface-2);
+}
+
+.toast .alert-error {
+  border-color: rgba(240, 96, 112, 0.3);
+  background: var(--k-surface-2);
 }
 
 /* ── Generic input (reserved for future use; not currently rendered) ── */

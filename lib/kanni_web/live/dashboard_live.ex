@@ -45,6 +45,8 @@ defmodule KanniWeb.DashboardLive do
        activity_buffer: %{},
        activity_timer: nil,
        prev_repo_states: prev_states,
+       file_context: nil,
+       selected_file_path: nil,
        kerto_status: Kanni.Context.status(),
        plugin_panels: collect_plugin_panels()
      )}
@@ -66,7 +68,7 @@ defmodule KanniWeb.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="kanni-shell">
+    <div id="kanni-shell" class="kanni-shell" phx-hook="KeyboardHook">
       <div class="kanni-header">
         <span class="kanni-logo">Känni</span>
         <span class="kanni-tagline">context exchange surface</span>
@@ -109,6 +111,8 @@ defmodule KanniWeb.DashboardLive do
         <.context_panel
           selected_repo={@selected_repo}
           context={@context}
+          file_context={@file_context}
+          selected_file_path={@selected_file_path}
           kerto_status={@kerto_status}
           plugin_panels={@plugin_panels}
         />
@@ -139,6 +143,32 @@ defmodule KanniWeb.DashboardLive do
     {:noreply, socket}
   end
 
+  def handle_event("key:select_repo", %{"index" => index}, socket) do
+    case Enum.at(socket.assigns.repos, index) do
+      nil -> {:noreply, socket}
+      repo -> {:noreply, push_patch(socket, to: "/?repo=#{URI.encode(repo.path)}")}
+    end
+  end
+
+  def handle_event("key:stage_focused", _params, socket) do
+    send_update(KanniWeb.ChangesComponent, id: "changes", action: :stage_focused)
+    {:noreply, socket}
+  end
+
+  def handle_event("key:unstage_focused", _params, socket) do
+    send_update(KanniWeb.ChangesComponent, id: "changes", action: :unstage_focused)
+    {:noreply, socket}
+  end
+
+  def handle_event("key:focus_commit", _params, socket) do
+    {:noreply, push_event(socket, "focus-commit-input", %{})}
+  end
+
+  def handle_event("key:push", _params, socket) do
+    send_update(KanniWeb.CommitComponent, id: "commit-form", action: :push)
+    {:noreply, socket}
+  end
+
   def handle_event("switch_tab", %{"tab" => tab}, socket) do
     socket = assign(socket, active_tab: tab)
 
@@ -166,6 +196,42 @@ defmodule KanniWeb.DashboardLive do
     end
 
     {:noreply, socket}
+  end
+
+  def handle_info({:flash, level, message}, socket) do
+    {:noreply, put_flash(socket, level, message)}
+  end
+
+  def handle_info({:file_selected, file_path, repo_path}, socket) do
+    file_context =
+      case Kanni.Context.get_file_context(Path.join(repo_path, file_path)) do
+        {:ok, ctx} -> ctx
+        _ -> nil
+      end
+
+    {:noreply, assign(socket, file_context: file_context, selected_file_path: file_path)}
+  end
+
+  def handle_info({:push_completed, path}, socket) do
+    if pid = worker_pid(path) do
+      Kanni.Repo.Worker.refresh(pid)
+    end
+
+    repo = Enum.find(socket.assigns.repos, &(&1.path == path))
+    branch = if repo, do: repo.branch, else: nil
+
+    entry = %Activity.Entry{
+      id: :crypto.strong_rand_bytes(8) |> Base.url_encode64(padding: false),
+      type: :pushed,
+      repo: (repo && repo.name) || Path.basename(path),
+      repo_path: path,
+      summary: "pushed to origin",
+      detail: %{branch: branch},
+      timestamp: DateTime.utc_now()
+    }
+
+    activity = Activity.prepend(socket.assigns.activity, [entry])
+    {:noreply, assign(socket, activity: activity)}
   end
 
   def handle_info({:repo_state_changed, repo_state}, socket) do
@@ -244,6 +310,8 @@ defmodule KanniWeb.DashboardLive do
       selected_repo: repo,
       handle: handle,
       context: context,
+      file_context: nil,
+      selected_file_path: nil,
       error: nil,
       kerto_status: Kanni.Context.status()
     )

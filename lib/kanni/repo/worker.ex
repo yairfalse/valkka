@@ -27,6 +27,7 @@ defmodule Kanni.Repo.Worker do
     behind: 0,
     is_detached: false,
     dirty_count: 0,
+    head_oid: nil,
     status: :initializing
   ]
 
@@ -39,6 +40,7 @@ defmodule Kanni.Repo.Worker do
           behind: non_neg_integer(),
           is_detached: boolean(),
           dirty_count: non_neg_integer(),
+          head_oid: String.t() | nil,
           status: :initializing | :idle | :operating | :error
         }
 
@@ -187,7 +189,8 @@ defmodule Kanni.Repo.Worker do
               | branch: info["branch"],
                 ahead: info["ahead"] || 0,
                 behind: info["behind"] || 0,
-                is_detached: info["is_detached"] || false
+                is_detached: info["is_detached"] || false,
+                head_oid: info["head_oid"]
             }
 
           _ ->
@@ -230,6 +233,7 @@ defmodule Kanni.Repo.Worker do
       behind: data.behind,
       is_detached: data.is_detached,
       dirty_count: data.dirty_count,
+      head_oid: data.head_oid,
       status: data.status
     }
   end

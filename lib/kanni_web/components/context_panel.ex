@@ -8,6 +8,8 @@ defmodule KanniWeb.Components.ContextPanel do
 
   attr :selected_repo, :map, default: nil
   attr :context, :string, default: nil
+  attr :file_context, :string, default: nil
+  attr :selected_file_path, :string, default: nil
   attr :kerto_status, :map, default: %{}
   attr :plugin_panels, :list, default: []
 
@@ -21,10 +23,14 @@ defmodule KanniWeb.Components.ContextPanel do
         </span>
       </div>
       <div class="kanni-context-content">
+        <div :if={@file_context} class="kanni-file-context">
+          <div class="kanni-context-section-header">{@selected_file_path}</div>
+          <pre class="kanni-context-text">{@file_context}</pre>
+        </div>
         <div :if={@context} class="kanni-context-rendered">
           <pre class="kanni-context-text">{@context}</pre>
         </div>
-        <div :if={!@context} class="kanni-empty">
+        <div :if={!@context && !@file_context} class="kanni-empty">
           <p :if={@selected_repo && has_plugins?(assigns)}>No context yet</p>
           <p :if={@selected_repo && !has_plugins?(assigns)} class="kanni-no-plugins">
             No plugins active
