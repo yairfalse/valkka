@@ -1,4 +1,4 @@
-# Känni: Error Handling Strategy
+# Valkka: Error Handling Strategy
 
 > Inspired by Sykli's rich error formatting and Kerto's fault tolerance.
 > Errors are first-class citizens, not afterthoughts.
@@ -62,7 +62,7 @@
 ## 3. Structured Error Type
 
 ```elixir
-defmodule Känni.Error do
+defmodule Valkka.Error do
   @type t :: %__MODULE__{
     code: atom(),
     message: String.t(),
@@ -74,7 +74,7 @@ defmodule Känni.Error do
 
   @type action :: %{
     label: String.t(),
-    intent: Känni.AI.Intent.t()
+    intent: Valkka.AI.Intent.t()
   }
 
   defstruct [:code, :message, :detail, :suggestion, recoverable: true, actions: []]
@@ -85,7 +85,7 @@ end
 
 ```elixir
 # Git dirty workdir error
-%Känni.Error{
+%Valkka.Error{
   code: :dirty_workdir,
   message: "You have 3 uncommitted changes",
   detail: "Modified: lib/repo.ex, lib/ai.ex\nUntracked: scratch.txt",
@@ -102,7 +102,7 @@ end
 ### Rendering in Chat
 
 ```
-  känni: Can't switch to main — you have 3 uncommitted changes.
+  valkka: Can't switch to main — you have 3 uncommitted changes.
 
     Modified: lib/repo.ex, lib/ai.ex
     Untracked: scratch.txt
@@ -137,7 +137,7 @@ where
                 "NIF panic: unknown error".to_string()
             };
             // Log to file for debugging
-            eprintln!("[KANNI NIF ERROR] {}", msg);
+            eprintln!("[VALKKA NIF ERROR] {}", msg);
             Err(msg)
         }
     }
@@ -159,11 +159,11 @@ fn repo_open(path: String) -> Result<ResourceArc<RepoHandle>, String> {
 ### Elixir Side: Translate NIF Errors
 
 ```elixir
-defmodule Känni.Git.Commands do
+defmodule Valkka.Git.Commands do
   @moduledoc "High-level git commands. Translates NIF results to domain errors."
 
-  alias Känni.Git.Native
-  alias Känni.Error
+  alias Valkka.Git.Native
+  alias Valkka.Error
 
   def checkout(handle, ref) do
     case Native.checkout(handle, ref) do
@@ -209,16 +209,16 @@ end
 ### Repo Worker Crash Recovery
 
 ```elixir
-defmodule Känni.Repo.Worker do
+defmodule Valkka.Repo.Worker do
   use GenServer, restart: :transient
 
   def init(opts) do
     path = Keyword.fetch!(opts, :path)
 
-    case Känni.Git.Native.repo_open(path) do
+    case Valkka.Git.Native.repo_open(path) do
       {:ok, handle} ->
         # Subscribe to file watcher
-        Phoenix.PubSub.subscribe(Känni.PubSub, "watcher:#{path}")
+        Phoenix.PubSub.subscribe(Valkka.PubSub, "watcher:#{path}")
         {:ok, %{handle: handle, path: path, status: nil, error_count: 0}}
 
       {:error, reason} ->
@@ -230,7 +230,7 @@ defmodule Känni.Repo.Worker do
 
   def handle_continue(:retry_open, %{error_count: count} = state) when count < 3 do
     Process.sleep(1000 * count)  # backoff
-    case Känni.Git.Native.repo_open(state.path) do
+    case Valkka.Git.Native.repo_open(state.path) do
       {:ok, handle} ->
         {:noreply, %{state | handle: handle, status: nil, error_count: 0}}
       {:error, _} ->
@@ -240,7 +240,7 @@ defmodule Känni.Repo.Worker do
 
   def handle_continue(:retry_open, state) do
     # Give up after 3 retries — broadcast error to UI
-    Phoenix.PubSub.broadcast(Känni.PubSub, "repo:#{state.path}", {:repo_error, state.error})
+    Phoenix.PubSub.broadcast(Valkka.PubSub, "repo:#{state.path}", {:repo_error, state.error})
     {:noreply, state}
   end
 end
@@ -249,7 +249,7 @@ end
 ### AI Stream Recovery
 
 ```elixir
-defmodule Känni.AI.StreamManager do
+defmodule Valkka.AI.StreamManager do
   def handle_cast({:request, repo_id, intent, opts}, state) do
     task = Task.async(fn ->
       case do_stream(repo_id, intent, opts) do
@@ -281,7 +281,7 @@ end
 
 ## 6. Graceful Degradation
 
-When subsystems fail, Känni continues working with reduced functionality.
+When subsystems fail, Valkka continues working with reduced functionality.
 
 | Failed Subsystem | What Still Works | User Notification |
 |---|---|---|
@@ -294,7 +294,7 @@ When subsystems fail, Känni continues working with reduced functionality.
 ### Implementation
 
 ```elixir
-defmodule Känni.HealthCheck do
+defmodule Valkka.HealthCheck do
   def status do
     %{
       nif: check_nif(),
@@ -305,7 +305,7 @@ defmodule Känni.HealthCheck do
   end
 
   defp check_nif do
-    case Känni.Git.Native.repo_open("/dev/null") do
+    case Valkka.Git.Native.repo_open("/dev/null") do
       {:error, _} -> :ok  # Error is expected, but NIF loaded
     end
   rescue

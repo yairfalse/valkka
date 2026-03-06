@@ -1,6 +1,6 @@
-# Känni Domain Model
+# Valkka Domain Model
 
-> The domain model defines what Känni *is* — the language, the concepts, the rules.
+> The domain model defines what Valkka *is* — the language, the concepts, the rules.
 > Code that doesn't speak this language is wrong.
 
 ---
@@ -12,16 +12,16 @@ These terms mean exactly one thing across the entire codebase. If you're writing
 | Term | Definition |
 |---|---|
 | **Workspace** | A collection of monitored repositories. The user's project scope. One user has one active workspace. |
-| **Repository** | A monitored git repository. Känni watches it, knows its state, operates on it. Not just a path — a living, observed entity. |
-| **Conversation** | A sequence of exchanges between the user and Känni within a workspace. The primary interaction model. Persists across sessions. |
+| **Repository** | A monitored git repository. Valkka watches it, knows its state, operates on it. Not just a path — a living, observed entity. |
+| **Conversation** | A sequence of exchanges between the user and Valkka within a workspace. The primary interaction model. Persists across sessions. |
 | **Utterance** | A single user input in a conversation. Could be natural language, a command, or a question. |
 | **Intent** | The parsed meaning of an utterance. What the user wants to happen. Classified into git operations, queries, or AI-assisted operations. |
 | **Operation** | A git action that mutates repository state: commit, merge, rebase, cherry-pick, etc. Always requires confirmation before execution. |
 | **Query** | A read-only request for information: "what changed?", "who wrote this?", "show the graph." Never mutates state. |
-| **SemanticDiff** | A language-aware diff that understands code structure — functions added, modified, renamed — not just lines changed. Känni's technical moat. |
+| **SemanticDiff** | A language-aware diff that understands code structure — functions added, modified, renamed — not just lines changed. Valkka's technical moat. |
 | **Graph** | The visual representation of commit history — branches, merges, forks. Computed as a layout with positions, not just raw data. |
 | **Review** | An AI-powered analysis of changes (PR, branch, or uncommitted work). Produces a structured assessment with summary, risks, and suggestions. |
-| **Suggestion** | An actionable proposal from Känni — a commit message, a conflict resolution, a review comment. User accepts, modifies, or rejects. |
+| **Suggestion** | An actionable proposal from Valkka — a commit message, a conflict resolution, a review comment. User accepts, modifies, or rejects. |
 | **Conflict** | A merge conflict with full context: both sides, common ancestor, and AI-proposed resolution. |
 | **RepoStatus** | The current state snapshot of a repository: head, branch, clean/dirty, ahead/behind, active operations. |
 | **Watcher** | The file system observer for a repository. Detects changes and triggers state refresh. |
@@ -236,12 +236,12 @@ These have no identity. They are equal if their values are equal.
 
 ```elixir
 # A point in git history
-defmodule Känni.Git.OID do
+defmodule Valkka.Git.OID do
   @type t :: %__MODULE__{sha: String.t()}
 end
 
 # A commit snapshot
-defmodule Känni.Git.Commit do
+defmodule Valkka.Git.Commit do
   @type t :: %__MODULE__{
     oid: OID.t(),
     message: String.t(),
@@ -253,7 +253,7 @@ defmodule Känni.Git.Commit do
 end
 
 # A branch pointer
-defmodule Känni.Git.Branch do
+defmodule Valkka.Git.Branch do
   @type t :: %__MODULE__{
     name: String.t(),
     target: OID.t(),
@@ -263,7 +263,7 @@ defmodule Känni.Git.Branch do
 end
 
 # A file change in a diff
-defmodule Känni.Git.FileDelta do
+defmodule Valkka.Git.FileDelta do
   @type t :: %__MODULE__{
     path: String.t(),
     old_path: String.t() | nil,
@@ -274,7 +274,7 @@ defmodule Känni.Git.FileDelta do
 end
 
 # A semantic change (the differentiator)
-defmodule Känni.Git.SemanticChange do
+defmodule Valkka.Git.SemanticChange do
   @type t :: %__MODULE__{
     type: :function_added | :function_modified | :function_removed |
           :type_added | :type_modified | :type_removed |
@@ -288,7 +288,7 @@ defmodule Känni.Git.SemanticChange do
 end
 
 # A node in the commit graph layout
-defmodule Känni.Git.GraphNode do
+defmodule Valkka.Git.GraphNode do
   @type t :: %__MODULE__{
     oid: OID.t(),
     column: non_neg_integer(),
@@ -299,7 +299,7 @@ defmodule Känni.Git.GraphNode do
 end
 
 # An AI suggestion
-defmodule Känni.AI.Suggestion do
+defmodule Valkka.AI.Suggestion do
   @type t :: %__MODULE__{
     type: :commit_message | :conflict_resolution | :review_comment | :operation,
     content: String.t(),
@@ -450,11 +450,11 @@ The Rust NIF is infrastructure, not domain. The domain never touches NIF types d
 
 ```
 Domain types (Elixir structs)
-    ↕ translation layer (Känni.Git.Native module)
+    ↕ translation layer (Valkka.Git.Native module)
 Rust NIF returns (raw maps/tuples)
 ```
 
-`Känni.Git.Native` translates NIF return values into domain value objects. The rest of the application only sees `%Commit{}`, `%Branch{}`, `%SemanticDiff{}` — never raw NIF data.
+`Valkka.Git.Native` translates NIF return values into domain value objects. The rest of the application only sees `%Commit{}`, `%Branch{}`, `%SemanticDiff{}` — never raw NIF data.
 
 ---
 

@@ -1,4 +1,4 @@
-# Känni: Native Desktop App Strategy
+# Valkka: Native Desktop App Strategy
 
 > Not a browser tab. A real app. On every platform.
 
@@ -44,7 +44,7 @@ GitKraken is Electron (Chromium + Node). It's 600MB+ and sluggish. We need to be
                │ localhost:4420
                │
 ┌──────────────▼──────────────────────────┐
-│  Känni Backend (BEAM process)           │
+│  Valkka Backend (BEAM process)           │
 │                                         │
 │  Phoenix Endpoint                       │
 │  Repo Workers (GenServers)              │
@@ -87,14 +87,14 @@ GitKraken is Electron (Chromium + Node). It's 600MB+ and sluggish. We need to be
 ### macOS
 
 ```
-Känni.app (bundle)
+Valkka.app (bundle)
 ├── Contents/
 │   ├── MacOS/
-│   │   ├── kanni-tauri          # Tauri binary (native shell)
-│   │   └── kanni-beam           # Bundled BEAM release (Burrito)
+│   │   ├── valkka-tauri          # Tauri binary (native shell)
+│   │   └── valkka-beam           # Bundled BEAM release (Burrito)
 │   ├── Resources/
 │   │   ├── AppIcon.icns
-│   │   └── kanni_git.dylib      # Rust NIF
+│   │   └── valkka_git.dylib      # Rust NIF
 │   ├── Info.plist
 │   └── Frameworks/              # (WebKit is system-provided)
 ```
@@ -104,7 +104,7 @@ Känni.app (bundle)
 - Dock icon with badge (unresolved conflicts count)
 - System tray icon — quick status, always running
 - Touch Bar support (commit, push, pull buttons)
-- Homebrew cask install: `brew install --cask kanni`
+- Homebrew cask install: `brew install --cask valkka`
 - Native notifications (CI failed, PR merged)
 - Spotlight integration — search repos by name
 - Universal binary (Intel + Apple Silicon)
@@ -114,11 +114,11 @@ Känni.app (bundle)
 ### Linux
 
 ```
-kanni/
-├── kanni                        # Tauri binary
-├── kanni-beam                   # Bundled BEAM release
-├── kanni_git.so                 # Rust NIF
-├── kanni.desktop                # Desktop entry
+valkka/
+├── valkka                        # Tauri binary
+├── valkka-beam                   # Bundled BEAM release
+├── valkka_git.so                 # Rust NIF
+├── valkka.desktop                # Desktop entry
 └── icons/
     ├── 128x128.png
     ├── 256x256.png
@@ -135,18 +135,18 @@ kanni/
 **Native features:**
 - System tray (libappindicator)
 - Desktop notifications (libnotify)
-- File manager integration (open repo in Känni)
-- XDG compliance (config in `~/.config/kanni/`)
+- File manager integration (open repo in Valkka)
+- XDG compliance (config in `~/.config/valkka/`)
 
 **WebView:** WebKitGTK (requires `webkit2gtk` package)
 
 ### Windows
 
 ```
-Känni/
-├── Kanni.exe                    # Tauri binary
-├── kanni-beam.exe               # Bundled BEAM release
-├── kanni_git.dll                # Rust NIF
+Valkka/
+├── Valkka.exe                    # Tauri binary
+├── valkka-beam.exe               # Bundled BEAM release
+├── valkka_git.dll                # Rust NIF
 └── resources/
     └── icon.ico
 ```
@@ -154,7 +154,7 @@ Känni/
 **Distribution formats:**
 - MSIX — Windows Store + auto-update
 - `.msi` — traditional installer
-- WinGet: `winget install kanni`
+- WinGet: `winget install valkka`
 - Portable `.zip` — no install needed
 
 **Native features:**
@@ -171,12 +171,12 @@ Känni/
 ## 4. Startup Flow
 
 ```
-User clicks Känni.app
+User clicks Valkka.app
   │
   ├── 1. Tauri shell starts (instant, ~5ms)
   │
   ├── 2. Tauri starts BEAM process in background
-  │      kanni-beam starts Phoenix on localhost:4420
+  │      valkka-beam starts Phoenix on localhost:4420
   │      (~1-2 seconds for BEAM boot)
   │
   ├── 3. Tauri shows splash/loading screen
@@ -199,7 +199,7 @@ fn main() {
         .setup(|app| {
             // Start BEAM as a sidecar process
             let sidecar = app.shell()
-                .sidecar("kanni-beam")
+                .sidecar("valkka-beam")
                 .args(["start"])
                 .spawn()
                 .expect("Failed to start BEAM");
@@ -285,7 +285,7 @@ window.__TAURI__.invoke('set_badge_count', { count: 3 });
 // System tray update
 window.__TAURI__.invoke('update_tray_status', {
     repos: [
-        { name: "kanni", status: "clean" },
+        { name: "valkka", status: "clean" },
         { name: "false-protocol", status: "dirty" }
     ]
 });
@@ -299,9 +299,9 @@ Always-running background status.
 
 ```
 ┌──────────────────────────┐
-│ Känni                    │
+│ Valkka                    │
 ├──────────────────────────┤
-│ ● kanni        main  ✓  │
+│ ● valkka        main  ✓  │
 │ ● false-proto  feat  ✗  │
 │ ● kerto        main  ✓  │
 │ ○ sykli        main  ✓  │
@@ -311,7 +311,7 @@ Always-running background status.
 │ Run CI                   │
 ├──────────────────────────┤
 │ Preferences              │
-│ Quit Känni               │
+│ Quit Valkka               │
 └──────────────────────────┘
 
 ● = has changes    ○ = clean
@@ -326,7 +326,7 @@ Native shortcuts that work across all platforms.
 
 | Action | macOS | Linux/Windows |
 |---|---|---|
-| Open Känni | Cmd+Shift+K | Ctrl+Shift+K |
+| Open Valkka | Cmd+Shift+K | Ctrl+Shift+K |
 | Quick commit | Cmd+Enter | Ctrl+Enter |
 | Show graph | Cmd+G | Ctrl+G |
 | Switch repo | Cmd+1-9 | Ctrl+1-9 |
@@ -339,13 +339,13 @@ Native shortcuts that work across all platforms.
 
 ### Global Hotkey
 
-Register a system-wide hotkey to summon Känni from anywhere:
+Register a system-wide hotkey to summon Valkka from anywhere:
 
 ```rust
 // Tauri global shortcut
 app.global_shortcut_manager()
     .register("CmdOrCtrl+Shift+K", move || {
-        // Show/focus the Känni window
+        // Show/focus the Valkka window
         window.show().unwrap();
         window.set_focus().unwrap();
     });
@@ -364,7 +364,7 @@ Tauri has built-in auto-update support.
         "updater": {
             "active": true,
             "dialog": true,
-            "endpoints": ["https://releases.kanni.dev/{{target}}/{{current_version}}"],
+            "endpoints": ["https://releases.valkka.dev/{{target}}/{{current_version}}"],
             "pubkey": "..."
         }
     }
@@ -375,7 +375,7 @@ Update flow:
 1. On launch, check for updates (background)
 2. If update available, show non-intrusive notification
 3. User clicks "Update" → download + replace binary
-4. Restart Känni (< 3 seconds)
+4. Restart Valkka (< 3 seconds)
 
 BEAM release is bundled inside the Tauri app — both update together.
 
@@ -386,7 +386,7 @@ BEAM release is bundled inside the Tauri app — both update together.
 ### The Bundle
 
 ```
-Känni app bundle (~30-50MB total)
+Valkka app bundle (~30-50MB total)
 ├── Tauri shell binary        ~5MB
 ├── BEAM release (Burrito)    ~15-25MB
 │   ├── ERTS (Erlang runtime)
@@ -420,9 +420,9 @@ cd tauri/
 cargo tauri build        # Produces platform-specific installer
 
 # Result:
-# macOS: Känni.app (DMG)
-# Linux: kanni.AppImage
-# Windows: Kanni_setup.exe (MSIX)
+# macOS: Valkka.app (DMG)
+# Linux: valkka.AppImage
+# Windows: Valkka_setup.exe (MSIX)
 ```
 
 ### CI Build Matrix (Sykli)
@@ -450,9 +450,9 @@ s.Emit()
 ## 10. Project Structure Addition
 
 ```
-kanni/
+valkka/
 ├── lib/                         # Elixir app (existing)
-├── native/kanni_git/            # Rust NIFs (existing)
+├── native/valkka_git/            # Rust NIFs (existing)
 ├── assets/                      # Web assets (existing)
 │
 ├── tauri/                       # NEW: Tauri shell

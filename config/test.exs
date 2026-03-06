@@ -2,7 +2,7 @@ import Config
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :kanni, KanniWeb.Endpoint,
+config :valkka, ValkkaWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4421],
   secret_key_base: "jk1Y97Cflas/KlhDcEmwslWunJlJTPqMJ7kZDY5h0558ZFocZRY5ZrUkgMk4we3+",
   server: false

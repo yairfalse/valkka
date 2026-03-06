@@ -1,4 +1,4 @@
-# Kanni Architecture v2
+# Valkka Architecture v2
 
 > AI-native git command center for agent-driven workflows.
 > This is the definitive architecture. v1 was exploration. v2 is the blueprint.
@@ -124,7 +124,7 @@ The new boundary: **8 NIF functions** that cover all read-heavy, performance-cri
 ### The 8 NIF Functions
 
 ```
-Kanni.Git.Native
+Valkka.Git.Native
   repo_open(path)                     → {:ok, handle} | {:error, reason}
   repo_close(handle)                  → :ok
   status(handle)                      → {:ok, %Status{}}
@@ -229,7 +229,7 @@ Compute visual layout for the commit graph. This must be a NIF because the layou
 These operations are infrequent (user-initiated, not on hot paths) and benefit from using the real `git` CLI which handles edge cases (auth, config, hooks) that git2-rs does not.
 
 ```elixir
-defmodule Kanni.Git.CLI do
+defmodule Valkka.Git.CLI do
   @moduledoc """
   Git operations via System.cmd. For operations that don't need NIF speed
   or that benefit from git CLI's full feature set (auth, hooks, config).
@@ -330,7 +330,7 @@ end
 
 ### Principle
 
-Git is local. Kanni is a local application. Offline is the default state. Network is optional.
+Git is local. Valkka is a local application. Offline is the default state. Network is optional.
 
 ### What Works Offline (Everything Except Remote Operations)
 
@@ -350,7 +350,7 @@ GitHub/GitLab API (PR reviews, issue linking).
 ### AI Provider Behaviour with Offline Adapter
 
 ```elixir
-defmodule Kanni.AI.Provider do
+defmodule Valkka.AI.Provider do
   @moduledoc "Behaviour for AI providers. Swap between cloud and local."
 
   @callback stream(prompt :: String.t(), opts :: keyword()) ::
@@ -361,8 +361,8 @@ defmodule Kanni.AI.Provider do
   @callback name() :: String.t()
 end
 
-defmodule Kanni.AI.Providers.Anthropic do
-  @behaviour Kanni.AI.Provider
+defmodule Valkka.AI.Providers.Anthropic do
+  @behaviour Valkka.AI.Provider
 
   @impl true
   def stream(prompt, opts) do
@@ -382,8 +382,8 @@ defmodule Kanni.AI.Providers.Anthropic do
   def name, do: "Anthropic Claude"
 end
 
-defmodule Kanni.AI.Providers.Ollama do
-  @behaviour Kanni.AI.Provider
+defmodule Valkka.AI.Providers.Ollama do
+  @behaviour Valkka.AI.Provider
 
   @impl true
   def stream(prompt, opts) do
@@ -407,9 +407,9 @@ defmodule Kanni.AI.Providers.Ollama do
   def name, do: "Ollama (local)"
 end
 
-defmodule Kanni.AI.Providers.Null do
+defmodule Valkka.AI.Providers.Null do
   @moduledoc "No-op provider. Used when no AI is available."
-  @behaviour Kanni.AI.Provider
+  @behaviour Valkka.AI.Provider
 
   @impl true
   def stream(_prompt, _opts), do: {:error, :no_ai_available}
@@ -425,7 +425,7 @@ end
 ### Provider Selection Logic
 
 ```elixir
-defmodule Kanni.AI.ProviderSelector do
+defmodule Valkka.AI.ProviderSelector do
   @moduledoc "Selects the best available AI provider."
 
   def select(config) do
@@ -435,20 +435,20 @@ defmodule Kanni.AI.ProviderSelector do
       preferred != :auto and provider_module(preferred).available?() ->
         provider_module(preferred)
 
-      Kanni.AI.Providers.Anthropic.available?() ->
-        Kanni.AI.Providers.Anthropic
+      Valkka.AI.Providers.Anthropic.available?() ->
+        Valkka.AI.Providers.Anthropic
 
-      Kanni.AI.Providers.Ollama.available?() ->
-        Kanni.AI.Providers.Ollama
+      Valkka.AI.Providers.Ollama.available?() ->
+        Valkka.AI.Providers.Ollama
 
       true ->
-        Kanni.AI.Providers.Null
+        Valkka.AI.Providers.Null
     end
   end
 
-  defp provider_module(:anthropic), do: Kanni.AI.Providers.Anthropic
-  defp provider_module(:openai), do: Kanni.AI.Providers.OpenAI
-  defp provider_module(:ollama), do: Kanni.AI.Providers.Ollama
+  defp provider_module(:anthropic), do: Valkka.AI.Providers.Anthropic
+  defp provider_module(:openai), do: Valkka.AI.Providers.OpenAI
+  defp provider_module(:ollama), do: Valkka.AI.Providers.Ollama
 end
 ```
 
@@ -470,7 +470,7 @@ end
 The regex-based intent parser handles 80%+ of common commands without any AI:
 
 ```elixir
-defmodule Kanni.AI.IntentParser do
+defmodule Valkka.AI.IntentParser do
   @fast_patterns [
     {~r/^commit$/i, {:ai_op, :generate_commit_msg, %{}}},
     {~r/^commit (.+)$/i, fn [msg] -> {:git_op, :commit, %{message: msg}} end},
@@ -522,7 +522,7 @@ defmodule Kanni.AI.IntentParser do
 end
 ```
 
-This means: if you have no internet and no Ollama, you can still type "commit", "push", "show diff", "squash last 3 commits", and Kanni understands you. The LLM is only needed for ambiguous or novel phrasing.
+This means: if you have no internet and no Ollama, you can still type "commit", "push", "show diff", "squash last 3 commits", and Valkka understands you. The LLM is only needed for ambiguous or novel phrasing.
 
 ---
 
@@ -530,13 +530,13 @@ This means: if you have no internet and no Ollama, you can still type "commit", 
 
 ### Design
 
-A plugin is an Elixir module that implements the `Kanni.Plugin` behaviour. Plugins hook into lifecycle events, register custom commands (including natural language patterns), and can contribute UI components.
+A plugin is an Elixir module that implements the `Valkka.Plugin` behaviour. Plugins hook into lifecycle events, register custom commands (including natural language patterns), and can contribute UI components.
 
 ### Plugin Behaviour
 
 ```elixir
-defmodule Kanni.Plugin do
-  @moduledoc "Behaviour for Kanni plugins."
+defmodule Valkka.Plugin do
+  @moduledoc "Behaviour for Valkka plugins."
 
   @type hook_result :: :ok | {:halt, reason :: term()}
 
@@ -584,8 +584,8 @@ end
 ### Example Plugin: Conventional Commits Enforcer
 
 ```elixir
-defmodule Kanni.Plugins.ConventionalCommits do
-  @behaviour Kanni.Plugin
+defmodule Valkka.Plugins.ConventionalCommits do
+  @behaviour Valkka.Plugin
 
   @impl true
   def name, do: "conventional-commits"
@@ -628,13 +628,13 @@ end
 ### Plugin Discovery and Loading
 
 ```elixir
-defmodule Kanni.Plugin.Manager do
+defmodule Valkka.Plugin.Manager do
   @moduledoc "Discovers, loads, and manages plugins."
 
   use GenServer
 
   @plugin_dirs [
-    "~/.kanni/plugins",     # user plugins
+    "~/.valkka/plugins",     # user plugins
     "plugins"               # project-local plugins
   ]
 
@@ -648,7 +648,7 @@ defmodule Kanni.Plugin.Manager do
     dir_plugins = @plugin_dirs
     |> Enum.flat_map(&scan_plugin_dir/1)
 
-    # 2. Load from Mix dependencies (modules implementing Kanni.Plugin)
+    # 2. Load from Mix dependencies (modules implementing Valkka.Plugin)
     dep_plugins = :application.loaded_applications()
     |> Enum.flat_map(&find_plugin_modules/1)
 
@@ -710,12 +710,12 @@ User input
 ### Plugin Configuration
 
 ```elixir
-# ~/.kanni/config.exs
-config :kanni, :plugins,
+# ~/.valkka/config.exs
+config :valkka, :plugins,
   enabled: [
-    Kanni.Plugins.ConventionalCommits,
-    Kanni.Plugins.JiraLinker,
-    Kanni.Plugins.SlackNotifier
+    Valkka.Plugins.ConventionalCommits,
+    Valkka.Plugins.JiraLinker,
+    Valkka.Plugins.SlackNotifier
   ],
   config: %{
     jira_linker: %{base_url: "https://mycompany.atlassian.net"},
@@ -746,7 +746,7 @@ The application uses a three-panel layout with collapsible side panels.
 |                  |                            |                  |
 +------------------+----------------------------+------------------+
 |  STATUS BAR                                                      |
-|  repo: kanni  branch: main  clean  AI: Anthropic  CI: passed    |
+|  repo: valkka  branch: main  clean  AI: Anthropic  CI: passed    |
 +------------------------------------------------------------------+
 ```
 
@@ -775,7 +775,7 @@ The primary quick-action interface. Appears as a centered modal overlay.
 |  > search commands, repos, branches...           |
 +--------------------------------------------------+
 |  Repos                                           |
-|    kanni          main     clean                 |
+|    valkka          main     clean                 |
 |    false-protocol feat/v2  3 dirty               |
 |                                                  |
 |  Actions                                         |
@@ -877,67 +877,67 @@ In Tauri mode, critical notifications (CI failed, merge conflict) also trigger n
 ### Overview
 
 ```
-Kanni.Application (Application)
+Valkka.Application (Application)
 |
-+-- Kanni.PubSub (Phoenix.PubSub)
++-- Valkka.PubSub (Phoenix.PubSub)
 |
-+-- Kanni.Plugin.Manager (GenServer)
++-- Valkka.Plugin.Manager (GenServer)
 |     Loads plugins, dispatches hooks
 |
-+-- Kanni.Repo.Supervisor (DynamicSupervisor)
++-- Valkka.Repo.Supervisor (DynamicSupervisor)
 |   |
-|   +-- Kanni.Repo.Worker (gen_statem, per repo)  <-- NEW: state machine
+|   +-- Valkka.Repo.Worker (gen_statem, per repo)  <-- NEW: state machine
 |   |     States: :initializing -> :idle <-> :operating -> :error
 |   |     Owns: ResourceArc handle, ETS cache table
 |   |     Publishes: state changes via PubSub
 |   |
-|   +-- Kanni.Repo.Worker (repo 2)
+|   +-- Valkka.Repo.Worker (repo 2)
 |   +-- ...
 |
-+-- Kanni.NIF.TaskSupervisor (Task.Supervisor)  <-- NEW: async NIF calls
++-- Valkka.NIF.TaskSupervisor (Task.Supervisor)  <-- NEW: async NIF calls
 |     All NIF calls run as supervised tasks
 |     Prevents NIF calls from blocking gen_statem
 |
-+-- Kanni.AI.Supervisor (Supervisor, one_for_one)
++-- Valkka.AI.Supervisor (Supervisor, one_for_one)
 |   |
-|   +-- Kanni.AI.StreamManager (GenServer)
+|   +-- Valkka.AI.StreamManager (GenServer)
 |   |     Manages concurrent AI requests
 |   |     Rate limiting, backpressure
 |   |
-|   +-- Kanni.AI.CircuitBreaker (GenServer)  <-- NEW
+|   +-- Valkka.AI.CircuitBreaker (GenServer)  <-- NEW
 |   |     Trips after 3 consecutive failures
 |   |     Half-open test after 30 seconds
 |   |     Auto-resets on success
 |   |
-|   +-- Kanni.AI.ContextBuilder (GenServer)
+|   +-- Valkka.AI.ContextBuilder (GenServer)
 |         Builds prompts from repo state + Kerto context
 |
-+-- Kanni.Watcher.Supervisor (DynamicSupervisor)
++-- Valkka.Watcher.Supervisor (DynamicSupervisor)
 |   |
-|   +-- Kanni.Watcher.Handler (GenServer, per repo)
+|   +-- Valkka.Watcher.Handler (GenServer, per repo)
 |   |     FileSystem subscriber
 |   |     Debounces rapid changes (100ms window)  <-- NEW
 |   |     Publishes coalesced events to repo worker
 |   |
 |   +-- ...
 |
-+-- Kanni.Cache.Manager (GenServer)  <-- NEW
++-- Valkka.Cache.Manager (GenServer)  <-- NEW
 |     Owns ETS tables for shared caches
 |     graph_cache: {repo_id, opts} -> %GraphLayout{}
 |     commit_cache: {repo_id, oid} -> %Commit{}
 |     TTL-based eviction
 |
-+-- Kanni.Workspace.Registry (Registry)
++-- Valkka.Workspace.Registry (Registry)
 |     Maps workspace IDs to repo workers
 |
-+-- KanniWeb.Endpoint (Phoenix)
++-- ValkkaWeb.Endpoint (Phoenix)
 |     LiveView connections
 |
-+-- Kanni.Kerto.Bridge (GenServer)  <-- integration layer
++-- Valkka.Kerto.Bridge (GenServer)  <-- integration layer
 |     Subscribes to PubSub repo events
 |     Emits Kerto occurrences
 |
-+-- Kanni.Sykli.Monitor (GenServer)  <-- integration layer
++-- Valkka.Sykli.Monitor (GenServer)  <-- integration layer
       Watches .sykli/occurrence.json per repo
       Publishes CI status to PubSub
 ```
@@ -947,7 +947,7 @@ Kanni.Application (Application)
 The v1 Repo.Worker was a plain GenServer. This is insufficient because a repository has distinct states with different valid operations. A gen_statem makes illegal states unrepresentable.
 
 ```elixir
-defmodule Kanni.Repo.Worker do
+defmodule Valkka.Repo.Worker do
   @behaviour :gen_statem
 
   # --- States ---
@@ -971,13 +971,13 @@ defmodule Kanni.Repo.Worker do
 
   def start_link(opts) do
     repo_id = Keyword.fetch!(opts, :repo_id)
-    :gen_statem.start_link({:via, Registry, {Kanni.Workspace.Registry, repo_id}}, __MODULE__, opts, [])
+    :gen_statem.start_link({:via, Registry, {Valkka.Workspace.Registry, repo_id}}, __MODULE__, opts, [])
   end
 
   def init(opts) do
     path = Keyword.fetch!(opts, :path)
     repo_id = Keyword.fetch!(opts, :repo_id)
-    cache_table = :ets.new(:"kanni_repo_#{repo_id}", [:set, :public, read_concurrency: true])
+    cache_table = :ets.new(:"valkka_repo_#{repo_id}", [:set, :public, read_concurrency: true])
 
     data = %__MODULE__{
       repo_id: repo_id,
@@ -993,8 +993,8 @@ defmodule Kanni.Repo.Worker do
 
   def initializing(:enter, _old_state, data) do
     # Open repo async via Task.Supervisor
-    Task.Supervisor.async_nolink(Kanni.NIF.TaskSupervisor, fn ->
-      Kanni.Git.Native.repo_open(data.path)
+    Task.Supervisor.async_nolink(Valkka.NIF.TaskSupervisor, fn ->
+      Valkka.Git.Native.repo_open(data.path)
     end)
     |> then(fn task -> {:keep_state, %{data | handle: {:pending, task.ref}}} end)
   end
@@ -1002,9 +1002,9 @@ defmodule Kanni.Repo.Worker do
   def initializing(:info, {ref, {:ok, handle}}, %{handle: {:pending, ref}} = data) do
     Process.demonitor(ref, [:flush])
     # Get initial status
-    case Kanni.Git.Native.status(handle) do
+    case Valkka.Git.Native.status(handle) do
       {:ok, status} ->
-        Phoenix.PubSub.subscribe(Kanni.PubSub, "watcher:#{data.repo_id}")
+        Phoenix.PubSub.subscribe(Valkka.PubSub, "watcher:#{data.repo_id}")
         broadcast(data.repo_id, {:repo_opened, status})
         {:next_state, :idle, %{data | handle: handle, status: status, error_count: 0}}
 
@@ -1022,7 +1022,7 @@ defmodule Kanni.Repo.Worker do
   def idle(:enter, _old_state, _data), do: :keep_state_and_data
 
   def idle({:call, from}, {:execute, operation}, data) do
-    task = Task.Supervisor.async_nolink(Kanni.NIF.TaskSupervisor, fn ->
+    task = Task.Supervisor.async_nolink(Valkka.NIF.TaskSupervisor, fn ->
       execute_operation(data.handle, data.path, operation)
     end)
 
@@ -1032,8 +1032,8 @@ defmodule Kanni.Repo.Worker do
 
   def idle(:info, {:file_changed, _events}, data) do
     # Refresh status (async)
-    Task.Supervisor.async_nolink(Kanni.NIF.TaskSupervisor, fn ->
-      Kanni.Git.Native.status(data.handle)
+    Task.Supervisor.async_nolink(Valkka.NIF.TaskSupervisor, fn ->
+      Valkka.Git.Native.status(data.handle)
     end)
     :keep_state_and_data
   end
@@ -1054,7 +1054,7 @@ defmodule Kanni.Repo.Worker do
     Process.demonitor(ref, [:flush])
     broadcast(data.repo_id, {:operation_completed, result})
     # Refresh status after operation
-    case Kanni.Git.Native.status(data.handle) do
+    case Valkka.Git.Native.status(data.handle) do
       {:ok, new_status} ->
         broadcast(data.repo_id, {:status_changed, new_status})
         {:next_state, :idle, %{data | status: new_status}}
@@ -1089,15 +1089,15 @@ defmodule Kanni.Repo.Worker do
   # --- Helpers ---
 
   defp execute_operation(handle, path, {:nif, function, args}) do
-    apply(Kanni.Git.Native, function, [handle | args])
+    apply(Valkka.Git.Native, function, [handle | args])
   end
 
   defp execute_operation(_handle, path, {:cli, function, args}) do
-    apply(Kanni.Git.CLI, function, [path | args])
+    apply(Valkka.Git.CLI, function, [path | args])
   end
 
   defp broadcast(repo_id, event) do
-    Phoenix.PubSub.broadcast(Kanni.PubSub, "repo:#{repo_id}", event)
+    Phoenix.PubSub.broadcast(Valkka.PubSub, "repo:#{repo_id}", event)
   end
 end
 ```
@@ -1108,13 +1108,13 @@ Every NIF call runs inside a supervised task. This prevents a slow or stuck NIF 
 
 ```elixir
 # In application.ex children:
-{Task.Supervisor, name: Kanni.NIF.TaskSupervisor}
+{Task.Supervisor, name: Valkka.NIF.TaskSupervisor}
 ```
 
 ### Circuit Breaker for AI Provider
 
 ```elixir
-defmodule Kanni.AI.CircuitBreaker do
+defmodule Valkka.AI.CircuitBreaker do
   use GenServer
 
   @max_failures 3
@@ -1164,15 +1164,15 @@ end
 ### ETS Cache for Graph Layouts and Commit History
 
 ```elixir
-defmodule Kanni.Cache.Manager do
+defmodule Valkka.Cache.Manager do
   use GenServer
 
   @graph_ttl :timer.minutes(5)
   @commit_ttl :timer.minutes(30)
 
   def init(_opts) do
-    graph_table = :ets.new(:kanni_graph_cache, [:set, :public, read_concurrency: true])
-    commit_table = :ets.new(:kanni_commit_cache, [:set, :public, read_concurrency: true])
+    graph_table = :ets.new(:valkka_graph_cache, [:set, :public, read_concurrency: true])
+    commit_table = :ets.new(:valkka_commit_cache, [:set, :public, read_concurrency: true])
 
     # Schedule periodic cleanup
     Process.send_after(self(), :cleanup, :timer.minutes(1))
@@ -1182,12 +1182,12 @@ defmodule Kanni.Cache.Manager do
 
   def get_graph(repo_id, opts) do
     key = {repo_id, opts}
-    case :ets.lookup(:kanni_graph_cache, key) do
+    case :ets.lookup(:valkka_graph_cache, key) do
       [{^key, layout, inserted_at}] ->
         if System.monotonic_time(:millisecond) - inserted_at < @graph_ttl do
           {:ok, layout}
         else
-          :ets.delete(:kanni_graph_cache, key)
+          :ets.delete(:valkka_graph_cache, key)
           :miss
         end
       [] -> :miss
@@ -1195,19 +1195,19 @@ defmodule Kanni.Cache.Manager do
   end
 
   def put_graph(repo_id, opts, layout) do
-    :ets.insert(:kanni_graph_cache, {{repo_id, opts}, layout, System.monotonic_time(:millisecond)})
+    :ets.insert(:valkka_graph_cache, {{repo_id, opts}, layout, System.monotonic_time(:millisecond)})
   end
 
   def invalidate_repo(repo_id) do
     # Delete all cache entries for this repo
-    :ets.match_delete(:kanni_graph_cache, {{repo_id, :_}, :_, :_})
-    :ets.match_delete(:kanni_commit_cache, {{repo_id, :_}, :_, :_})
+    :ets.match_delete(:valkka_graph_cache, {{repo_id, :_}, :_, :_})
+    :ets.match_delete(:valkka_commit_cache, {{repo_id, :_}, :_, :_})
   end
 
   def handle_info(:cleanup, state) do
     now = System.monotonic_time(:millisecond)
-    cleanup_table(:kanni_graph_cache, now, @graph_ttl)
-    cleanup_table(:kanni_commit_cache, now, @commit_ttl)
+    cleanup_table(:valkka_graph_cache, now, @graph_ttl)
+    cleanup_table(:valkka_commit_cache, now, @commit_ttl)
     Process.send_after(self(), :cleanup, :timer.minutes(1))
     {:noreply, state}
   end
@@ -1224,7 +1224,7 @@ end
 ### Rate Limiter for File Watcher Events
 
 ```elixir
-defmodule Kanni.Watcher.Handler do
+defmodule Valkka.Watcher.Handler do
   use GenServer
 
   @debounce_ms 100
@@ -1267,13 +1267,13 @@ defmodule Kanni.Watcher.Handler do
 
     if filtered != [] do
       Phoenix.PubSub.broadcast(
-        Kanni.PubSub,
+        Valkka.PubSub,
         "watcher:#{state.repo_id}",
         {:file_changed, filtered}
       )
 
       # Invalidate caches for this repo
-      Kanni.Cache.Manager.invalidate_repo(state.repo_id)
+      Valkka.Cache.Manager.invalidate_repo(state.repo_id)
     end
 
     {:noreply, %{state | pending_events: [], timer_ref: nil}}
@@ -1307,7 +1307,7 @@ end
 11. Worker executes commit(handle, message, [], %{}) via Task.Supervisor
 12. Worker transitions :operating -> :idle, broadcasts {:commit_created, oid}
 13. Plugin.Manager.run_hook(:on_commit, [repo_id, commit])
-14. Kanni.Kerto.Bridge receives PubSub event, emits Kerto occurrence
+14. Valkka.Kerto.Bridge receives PubSub event, emits Kerto occurrence
 15. LiveView updates: chat shows "Committed abc123", graph re-renders
 ```
 
@@ -1331,9 +1331,9 @@ end
 ## 8. Project Structure (v2)
 
 ```
-kanni/
+valkka/
   lib/
-    kanni/
+    valkka/
       application.ex              # Supervision tree (v2)
       repo/
         worker.ex                 # gen_statem (v2)
@@ -1374,7 +1374,7 @@ kanni/
         runner.ex                 # Trigger sykli runs
         context_provider.ex       # CI context for AI
 
-    kanni_web/
+    valkka_web/
       router.ex
       live/
         dashboard_live.ex         # Workspace overview
@@ -1403,7 +1403,7 @@ kanni/
     css/
       app.css
 
-  native/kanni_git/               # Rust NIF crate
+  native/valkka_git/               # Rust NIF crate
     Cargo.toml
     src/
       lib.rs                      # 8 NIF registrations (v2, down from 25+)
@@ -1438,13 +1438,13 @@ kanni/
     test.exs
 
   test/
-    kanni/
+    valkka/
       repo/
       git/
       ai/
       plugin/
       cache/
-    kanni_web/
+    valkka_web/
       live/
 
   mix.exs
@@ -1476,13 +1476,13 @@ kanni/
 
 ## 10. Kerto Integration (Unchanged from v1)
 
-Kerto embeds as a library dependency. Kanni.Kerto.Bridge subscribes to PubSub repo events and emits Kerto occurrences. Kerto context enriches AI prompts and diff annotations. See `docs/kerto-integration.md` for full details. No architectural changes needed -- the v1 design was already correct.
+Kerto embeds as a library dependency. Valkka.Kerto.Bridge subscribes to PubSub repo events and emits Kerto occurrences. Kerto context enriches AI prompts and diff annotations. See `docs/kerto-integration.md` for full details. No architectural changes needed -- the v1 design was already correct.
 
 ---
 
 ## 11. Sykli Integration (Unchanged from v1)
 
-Kanni.Sykli.Monitor watches `.sykli/occurrence.json` for changes and publishes CI status via PubSub. CI context feeds into AI prompts. See `docs/sykli-integration.md` for full details. No architectural changes needed.
+Valkka.Sykli.Monitor watches `.sykli/occurrence.json` for changes and publishes CI status via PubSub. CI context feeds into AI prompts. See `docs/sykli-integration.md` for full details. No architectural changes needed.
 
 ---
 
@@ -1494,7 +1494,7 @@ Kanni.Sykli.Monitor watches `.sykli/occurrence.json` for changes and publishes C
 
 **Why:** The v1 NIF surface of 25+ functions created excessive build complexity, crash surface area, and maintenance burden. Most git operations (merge, rebase, push, pull) are infrequent user-initiated actions where 50ms vs 200ms latency is imperceptible. The git CLI handles authentication, hooks, and edge cases that git2-rs requires manual implementation for.
 
-**Trade-off:** Two code paths for git operations (NIF and CLI). Mitigated by `Kanni.Git.Commands` module that presents a unified interface -- callers never know which path is used.
+**Trade-off:** Two code paths for git operations (NIF and CLI). Mitigated by `Valkka.Git.Commands` module that presents a unified interface -- callers never know which path is used.
 
 ### ADR-002v2: LiveView + JS Hooks (replaces consideration of SPA)
 
@@ -1522,9 +1522,9 @@ Kanni.Sykli.Monitor watches `.sykli/occurrence.json` for changes and publishes C
 
 ### ADR-006: Plugin System via Behaviours
 
-**Decision:** Plugins are Elixir modules implementing `Kanni.Plugin` behaviour. Discovery via filesystem scanning and Mix dependencies.
+**Decision:** Plugins are Elixir modules implementing `Valkka.Plugin` behaviour. Discovery via filesystem scanning and Mix dependencies.
 
-**Why:** Elixir behaviours provide compile-time callback checking, clear contracts, and zero runtime overhead. The alternative -- a dynamic plugin protocol over JSON/HTTP -- adds serialization cost and loses type safety. Since Kanni is an Elixir application, plugins written in Elixir get full access to the runtime (PubSub, ETS, NIF calls) without an interop layer.
+**Why:** Elixir behaviours provide compile-time callback checking, clear contracts, and zero runtime overhead. The alternative -- a dynamic plugin protocol over JSON/HTTP -- adds serialization cost and loses type safety. Since Valkka is an Elixir application, plugins written in Elixir get full access to the runtime (PubSub, ETS, NIF calls) without an interop layer.
 
 ### ADR-007: Offline by Default
 
@@ -1538,14 +1538,14 @@ Kanni.Sykli.Monitor watches `.sykli/occurrence.json` for changes and publishes C
 
 1. **The NIF boundary is minimal and stable.** 8 functions that rarely change. Everything else shells out to git CLI. Build complexity is bounded. Crash surface is small.
 
-2. **Offline by default means it always works.** Git is local. Kanni is local. AI is optional. This is a tool you can rely on in an airplane, a coffee shop with bad wifi, or a classified environment with no internet.
+2. **Offline by default means it always works.** Git is local. Valkka is local. AI is optional. This is a tool you can rely on in an airplane, a coffee shop with bad wifi, or a classified environment with no internet.
 
 3. **gen_statem + Task.Supervisor means the UI never freezes.** A 500ms semantic diff does not block status updates. A stuck AI request does not block commits. Everything is async, everything is supervised, everything recovers.
 
-4. **The plugin system turns Kanni into a platform.** Conventional commits enforcement, Jira linking, Slack notifications, custom deployment workflows -- all implementable without forking Kanni.
+4. **The plugin system turns Valkka into a platform.** Conventional commits enforcement, Jira linking, Slack notifications, custom deployment workflows -- all implementable without forking Valkka.
 
 5. **The UX is keyboard-driven.** Command palette, vim bindings, panel shortcuts. This is built for developers who think in commands, not clicks. The mouse works, but it is never required.
 
 6. **LiveView + hooks is the right split.** Server-rendered state management (where correctness matters) plus client-side rendering (where performance matters). No framework duplication, no state synchronization bugs, no build boundary between frontend and backend.
 
-7. **The semantic diff is still the technical moat.** No other git client tells you "this function's signature changed and a new validation function was added." They show green and red lines. tree-sitter in Rust, structured output to the AI -- this is what makes Kanni's commit messages and reviews better than anyone else's.
+7. **The semantic diff is still the technical moat.** No other git client tells you "this function's signature changed and a new validation function was added." They show green and red lines. tree-sitter in Rust, structured output to the AI -- this is what makes Valkka's commit messages and reviews better than anyone else's.

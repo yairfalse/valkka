@@ -1,6 +1,6 @@
-# Känni: Developer Practices
+# Valkka: Developer Practices
 
-> The definitive guide for contributing to Känni. Read this on day 1.
+> The definitive guide for contributing to Valkka. Read this on day 1.
 > Every pattern here is battle-tested in Kerto (243 tests) and Sykli (25+ modules).
 
 ---
@@ -12,7 +12,7 @@
 Modules follow a strict namespace hierarchy that mirrors the architecture:
 
 ```
-Känni.                          # Root namespace
+Valkka.                          # Root namespace
 ├── Git.Native                  # Rust NIF bindings (infrastructure)
 ├── Git.Commands                # High-level git operations
 ├── Git.Types                   # Commit, Branch, Diff structs
@@ -32,23 +32,23 @@ Känni.                          # Root namespace
 
 **Rules:**
 
-- One module per file. File name matches module name: `Känni.Repo.Worker` lives in `lib/kanni/repo/worker.ex`.
+- One module per file. File name matches module name: `Valkka.Repo.Worker` lives in `lib/valkka/repo/worker.ex`.
 - Infrastructure modules (`Git.Native`, `AI.Providers.*`) never appear in domain code.
 - Domain modules (`Git.Types`, `AI.Intent`) have zero dependencies on infrastructure.
 
 ```elixir
 # GOOD: clear namespace hierarchy
-defmodule Känni.Repo.Worker do
+defmodule Valkka.Repo.Worker do
   # ...
 end
 
 # BAD: flat namespace
-defmodule KanniRepoWorker do
+defmodule ValkkaRepoWorker do
   # ...
 end
 
 # BAD: too deep without reason
-defmodule Känni.Core.Domain.Git.Repository.Worker.Impl do
+defmodule Valkka.Core.Domain.Git.Repository.Worker.Impl do
   # ...
 end
 ```
@@ -141,7 +141,7 @@ end
 Spec all public functions. Skip private functions unless they are complex or non-obvious.
 
 ```elixir
-defmodule Känni.Git.Commands do
+defmodule Valkka.Git.Commands do
   # GOOD: all public functions have specs
   @spec checkout(ResourceArc.t(), String.t()) :: :ok | {:error, Error.t()}
   def checkout(handle, ref) do
@@ -177,7 +177,7 @@ end
 **Use `@enforce_keys` for domain structs** — borrowed from Kerto:
 
 ```elixir
-defmodule Känni.Git.Commit do
+defmodule Valkka.Git.Commit do
   @enforce_keys [:oid, :message, :author_name, :timestamp]
   defstruct [:oid, :message, :author_name, :author_email,
              :timestamp, parents: []]
@@ -198,7 +198,7 @@ end
 **`call` for reads, `cast` for fire-and-forget. Never `cast` for operations that need confirmation.**
 
 ```elixir
-defmodule Känni.Repo.Worker do
+defmodule Valkka.Repo.Worker do
   use GenServer
 
   # GOOD: call for reads — caller needs the result
@@ -245,7 +245,7 @@ defmodule Känni.Repo.Worker do
   def handle_call({:commit, message}, _from, %{handle: handle} = state) do
     case Native.commit(handle, message, %{}) do
       {:ok, oid} = result ->
-        Phoenix.PubSub.broadcast(Känni.PubSub, "repo:#{state.repo_id}", {:commit_created, oid})
+        Phoenix.PubSub.broadcast(Valkka.PubSub, "repo:#{state.repo_id}", {:commit_created, oid})
         {:reply, result, refresh_status(state)}
 
       {:error, _} = error ->
@@ -349,35 +349,35 @@ Use `Application.compile_env/3` for values that never change at runtime. Use `Ap
 
 ```elixir
 # GOOD: compile-time config (OTP app name, static feature flags)
-defmodule Känni.Git.Native do
+defmodule Valkka.Git.Native do
   use Rustler,
-    otp_app: Application.compile_env!(:kanni, :otp_app),
-    crate: :kanni_git
+    otp_app: Application.compile_env!(:valkka, :otp_app),
+    crate: :valkka_git
 end
 
 # GOOD: runtime config (provider can change, model can change)
-defmodule Känni.AI.StreamManager do
+defmodule Valkka.AI.StreamManager do
   defp provider do
-    Application.get_env(:kanni, :ai_provider, Känni.AI.Providers.Anthropic)
+    Application.get_env(:valkka, :ai_provider, Valkka.AI.Providers.Anthropic)
   end
 
   defp model do
-    Application.get_env(:kanni, :ai_model, "claude-sonnet-4-20250514")
+    Application.get_env(:valkka, :ai_model, "claude-sonnet-4-20250514")
   end
 end
 
 # config/config.exs — defaults
-config :kanni,
-  otp_app: :kanni,
-  ai_provider: Känni.AI.Providers.Anthropic
+config :valkka,
+  otp_app: :valkka,
+  ai_provider: Valkka.AI.Providers.Anthropic
 
 # config/test.exs — test overrides
-config :kanni,
-  ai_provider: Känni.AI.Providers.Mock
+config :valkka,
+  ai_provider: Valkka.AI.Providers.Mock
 
 # config/runtime.exs — runtime overrides from environment
-config :kanni,
-  ai_model: System.get_env("KANNI_AI_MODEL", "claude-sonnet-4-20250514")
+config :valkka,
+  ai_model: System.get_env("VALKKA_AI_MODEL", "claude-sonnet-4-20250514")
 ```
 
 ---
@@ -406,7 +406,7 @@ where
             } else {
                 "NIF panic: unknown error".to_string()
             };
-            eprintln!("[KANNI NIF ERROR] {}", msg);
+            eprintln!("[VALKKA NIF ERROR] {}", msg);
             Err(msg)
         }
     }
@@ -498,7 +498,7 @@ fn commit_detail(handle: ResourceArc<RepoHandle>, oid: String) -> Result<CommitD
 
 // CommitDetail derives NifStruct for automatic Elixir encoding
 #[derive(NifStruct)]
-#[module = "Känni.Git.NifCommit"]
+#[module = "Valkka.Git.NifCommit"]
 struct CommitDetail {
     oid: String,
     message: String,
@@ -582,7 +582,7 @@ rustler::atoms! {
 
 // Using Option<T> for nullable fields
 #[derive(NifStruct)]
-#[module = "Känni.Git.NifBranch"]
+#[module = "Valkka.Git.NifBranch"]
 struct BranchInfo {
     name: String,          // always present
     target: String,        // always present
@@ -619,7 +619,7 @@ fn file_history(
 
 ```rust
 rustler::init!(
-    "Elixir.Känni.Git.Native",
+    "Elixir.Valkka.Git.Native",
     [
         repo_open,
         repo_info,
@@ -629,11 +629,11 @@ rustler::init!(
 );
 ```
 
-**Step 3: Add the Elixir stub in `Känni.Git.Native`**
+**Step 3: Add the Elixir stub in `Valkka.Git.Native`**
 
 ```elixir
-defmodule Känni.Git.Native do
-  use Rustler, otp_app: :kanni, crate: :kanni_git
+defmodule Valkka.Git.Native do
+  use Rustler, otp_app: :valkka, crate: :valkka_git
 
   # ... existing stubs
 
@@ -643,10 +643,10 @@ defmodule Känni.Git.Native do
 end
 ```
 
-**Step 4: Add the high-level wrapper in `Känni.Git.Commands`**
+**Step 4: Add the high-level wrapper in `Valkka.Git.Commands`**
 
 ```elixir
-defmodule Känni.Git.Commands do
+defmodule Valkka.Git.Commands do
   @spec file_history(reference(), String.t(), keyword()) ::
           {:ok, [Commit.t()]} | {:error, Error.t()}
   def file_history(handle, path, opts \\ []) do
@@ -679,9 +679,9 @@ fn file_history_returns_commits_touching_file() {
 ```elixir
 # Elixir integration test
 test "file_history returns commits for specific file", %{handle: handle} do
-  {:ok, commits} = Känni.Git.Commands.file_history(handle, "README.md")
+  {:ok, commits} = Valkka.Git.Commands.file_history(handle, "README.md")
   assert length(commits) > 0
-  assert %Känni.Git.Commit{} = hd(commits)
+  assert %Valkka.Git.Commit{} = hd(commits)
 end
 ```
 
@@ -700,7 +700,7 @@ Never remove a NIF in one step. Follow this migration path:
 
 ```elixir
 # Step 1-2: old and new coexist
-defmodule Känni.Git.Native do
+defmodule Valkka.Git.Native do
   @deprecated "Use diff_v2/3 instead"
   def diff(_handle, _from, _to), do: :erlang.nif_error(:not_loaded)
 
@@ -846,19 +846,19 @@ const StreamHook = {
 Subscribe in `mount`, handle in `handle_info`.
 
 ```elixir
-defmodule KänniWeb.RepoLive do
-  use KänniWeb, :live_view
+defmodule ValkkaWeb.RepoLive do
+  use ValkkaWeb, :live_view
 
   @impl true
   def mount(%{"id" => repo_id}, _session, socket) do
     if connected?(socket) do
       # Subscribe to repo events
-      Phoenix.PubSub.subscribe(Känni.PubSub, "repo:#{repo_id}")
-      Phoenix.PubSub.subscribe(Känni.PubSub, "repo:#{repo_id}:ai")
-      Phoenix.PubSub.subscribe(Känni.PubSub, "repo:#{repo_id}:ci")
+      Phoenix.PubSub.subscribe(Valkka.PubSub, "repo:#{repo_id}")
+      Phoenix.PubSub.subscribe(Valkka.PubSub, "repo:#{repo_id}:ai")
+      Phoenix.PubSub.subscribe(Valkka.PubSub, "repo:#{repo_id}:ci")
     end
 
-    status = Känni.Repo.Worker.status(repo_id)
+    status = Valkka.Repo.Worker.status(repo_id)
 
     {:ok, assign(socket,
       repo_id: repo_id,
@@ -943,7 +943,7 @@ end
 All AI providers implement the same behaviour. Swap providers without changing application code.
 
 ```elixir
-defmodule Känni.AI.Provider do
+defmodule Valkka.AI.Provider do
   @moduledoc "Behaviour for AI/LLM providers."
 
   @type stream_opts :: [
@@ -959,8 +959,8 @@ defmodule Känni.AI.Provider do
     {:ok, String.t()} | {:error, term()}
 end
 
-defmodule Känni.AI.Providers.Anthropic do
-  @behaviour Känni.AI.Provider
+defmodule Valkka.AI.Providers.Anthropic do
+  @behaviour Valkka.AI.Provider
 
   @impl true
   def stream(prompt, opts) do
@@ -980,12 +980,12 @@ defmodule Känni.AI.Providers.Anthropic do
   end
 
   defp default_model do
-    Application.get_env(:kanni, :ai_model, "claude-sonnet-4-20250514")
+    Application.get_env(:valkka, :ai_model, "claude-sonnet-4-20250514")
   end
 end
 
-defmodule Känni.AI.Providers.Mock do
-  @behaviour Känni.AI.Provider
+defmodule Valkka.AI.Providers.Mock do
+  @behaviour Valkka.AI.Provider
 
   @impl true
   def stream(prompt, _opts) do
@@ -1019,7 +1019,7 @@ end
 Count tokens. Truncate oldest context first. Never exceed the model's context window.
 
 ```elixir
-defmodule Känni.AI.ContextBuilder do
+defmodule Valkka.AI.ContextBuilder do
   @moduledoc "Builds AI prompts from repo state, respecting token budgets."
 
   # Rough estimate: 1 token ~ 4 characters for English text, ~3 for code
@@ -1093,10 +1093,10 @@ priv/prompts/
 ```
 
 ```elixir
-defmodule Känni.AI.Prompts do
+defmodule Valkka.AI.Prompts do
   @moduledoc "Loads and renders prompt templates from priv/prompts/."
 
-  @prompts_dir Application.app_dir(:kanni, "priv/prompts")
+  @prompts_dir Application.app_dir(:valkka, "priv/prompts")
 
   @spec render(atom(), map()) :: String.t()
   def render(template_name, variables) do
@@ -1118,10 +1118,10 @@ defmodule Känni.AI.Prompts do
 end
 
 # Usage:
-prompt = Känni.AI.Prompts.render(:commit_message, %{
+prompt = Valkka.AI.Prompts.render(:commit_message, %{
   diff: semantic_diff_text,
   recent_commits: recent_messages,
-  repo_name: "kanni"
+  repo_name: "valkka"
 })
 ```
 
@@ -1157,7 +1157,7 @@ end
 
 # GOOD: configurable model
 def stream(prompt, opts \\ []) do
-  model = Keyword.get(opts, :model, Application.get_env(:kanni, :ai_model))
+  model = Keyword.get(opts, :model, Application.get_env(:valkka, :ai_model))
 
   Req.post!("https://api.anthropic.com/v1/messages",
     json: %{model: model, ...}
@@ -1165,15 +1165,15 @@ def stream(prompt, opts \\ []) do
 end
 
 # config/config.exs
-config :kanni, :ai_model, "claude-sonnet-4-20250514"
+config :valkka, :ai_model, "claude-sonnet-4-20250514"
 
 # User can override via environment
-# KANNI_AI_MODEL=claude-opus-4-20250514 ./kanni
+# VALKKA_AI_MODEL=claude-opus-4-20250514 ./valkka
 ```
 
 ---
 
-## 6. Git Conventions for Känni Development
+## 6. Git Conventions for Valkka Development
 
 ### 6.1 Branch Naming
 
@@ -1281,10 +1281,10 @@ mix format
 mix test
 
 # Run Rust tests
-cd native/kanni_git && cargo test
+cd native/valkka_git && cargo test
 
 # Run Rust linter
-cd native/kanni_git && cargo clippy -- -D warnings
+cd native/valkka_git && cargo clippy -- -D warnings
 
 # Check for compiler warnings
 mix compile --warnings-as-errors

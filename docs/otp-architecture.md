@@ -1,4 +1,4 @@
-# Känni: OTP Architecture
+# Valkka: OTP Architecture
 
 > Production-grade supervision, state machines, caching, and distribution.
 > Every process justified. Every restart strategy explained.
@@ -8,41 +8,41 @@
 ## 1. Complete Supervision Tree
 
 ```
-Känni.Application (Application)
+Valkka.Application (Application)
 │
-├── Känni.PubSub (Phoenix.PubSub)
+├── Valkka.PubSub (Phoenix.PubSub)
 │   strategy: N/A (standalone worker)
 │
-├── Känni.CacheSupervisor (Supervisor, one_for_one)
-│   ├── Känni.Cache.GraphCache      — ETS owner for :kanni_graph_cache
-│   ├── Känni.Cache.CommitCache     — ETS owner for :kanni_commit_cache
-│   └── Känni.Cache.StatusCache     — ETS owner for :kanni_status_cache
+├── Valkka.CacheSupervisor (Supervisor, one_for_one)
+│   ├── Valkka.Cache.GraphCache      — ETS owner for :valkka_graph_cache
+│   ├── Valkka.Cache.CommitCache     — ETS owner for :valkka_commit_cache
+│   └── Valkka.Cache.StatusCache     — ETS owner for :valkka_status_cache
 │
-├── Känni.NifTasks (Task.Supervisor)
+├── Valkka.NifTasks (Task.Supervisor)
 │   max_children: 20
 │
-├── Känni.Repo.Supervisor (DynamicSupervisor)
+├── Valkka.Repo.Supervisor (DynamicSupervisor)
 │   max_children: 50
-│   ├── Känni.Repo.WorkerSupervisor (Supervisor, rest_for_one) [per repo]
-│   │   ├── Känni.Repo.Worker (gen_statem)
-│   │   └── Känni.Watcher.Handler (GenServer)
+│   ├── Valkka.Repo.WorkerSupervisor (Supervisor, rest_for_one) [per repo]
+│   │   ├── Valkka.Repo.Worker (gen_statem)
+│   │   └── Valkka.Watcher.Handler (GenServer)
 │   ├── ... (repo 2)
 │   └── ... (repo N)
 │
-├── Känni.AI.Supervisor (Supervisor, one_for_one)
-│   ├── Känni.AI.StreamManager (GenServer)
-│   ├── Känni.AI.ContextBuilder (GenServer)
-│   └── Känni.AI.StreamTasks (Task.Supervisor)
+├── Valkka.AI.Supervisor (Supervisor, one_for_one)
+│   ├── Valkka.AI.StreamManager (GenServer)
+│   ├── Valkka.AI.ContextBuilder (GenServer)
+│   └── Valkka.AI.StreamTasks (Task.Supervisor)
 │
-├── Känni.Workspace.Registry (Registry, keys: :unique)
+├── Valkka.Workspace.Registry (Registry, keys: :unique)
 │
-├── Känni.Sykli.StatusMonitor (GenServer)
+├── Valkka.Sykli.StatusMonitor (GenServer)
 │
-├── Känni.Kerto.Hooks (GenServer)
+├── Valkka.Kerto.Hooks (GenServer)
 │
-├── KänniWeb.Endpoint (Phoenix)
+├── ValkkaWeb.Endpoint (Phoenix)
 │
-└── Känni.Shutdown (GenServer, trap_exit)
+└── Valkka.Shutdown (GenServer, trap_exit)
     Handles SIGTERM graceful shutdown
 ```
 
@@ -59,32 +59,32 @@ Känni.Application (Application)
 ### Child Spec Details
 
 ```elixir
-defmodule Känni.Application do
+defmodule Valkka.Application do
   use Application
 
   @impl true
   def start(_type, _args) do
     children = [
-      {Phoenix.PubSub, name: Känni.PubSub},
-      Känni.CacheSupervisor,
-      {Task.Supervisor, name: Känni.NifTasks, max_children: 20},
-      {DynamicSupervisor, name: Känni.Repo.Supervisor, strategy: :one_for_one, max_children: 50},
-      Känni.AI.Supervisor,
-      {Registry, keys: :unique, name: Känni.Workspace.Registry},
-      Känni.Sykli.StatusMonitor,
-      Känni.Kerto.Hooks,
-      KänniWeb.Endpoint,
-      Känni.Shutdown
+      {Phoenix.PubSub, name: Valkka.PubSub},
+      Valkka.CacheSupervisor,
+      {Task.Supervisor, name: Valkka.NifTasks, max_children: 20},
+      {DynamicSupervisor, name: Valkka.Repo.Supervisor, strategy: :one_for_one, max_children: 50},
+      Valkka.AI.Supervisor,
+      {Registry, keys: :unique, name: Valkka.Workspace.Registry},
+      Valkka.Sykli.StatusMonitor,
+      Valkka.Kerto.Hooks,
+      ValkkaWeb.Endpoint,
+      Valkka.Shutdown
     ]
 
-    opts = [strategy: :one_for_one, name: Känni.Supervisor]
+    opts = [strategy: :one_for_one, name: Valkka.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end
 ```
 
 ```elixir
-defmodule Känni.CacheSupervisor do
+defmodule Valkka.CacheSupervisor do
   use Supervisor
 
   def start_link(opts) do
@@ -94,9 +94,9 @@ defmodule Känni.CacheSupervisor do
   @impl true
   def init(_opts) do
     children = [
-      {Känni.Cache.GraphCache, []},
-      {Känni.Cache.CommitCache, []},
-      {Känni.Cache.StatusCache, []}
+      {Valkka.Cache.GraphCache, []},
+      {Valkka.Cache.CommitCache, []},
+      {Valkka.Cache.StatusCache, []}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
@@ -145,7 +145,7 @@ end
 ### Data Structure
 
 ```elixir
-defmodule Känni.Repo.Worker do
+defmodule Valkka.Repo.Worker do
   @behaviour :gen_statem
 
   defmodule Data do
@@ -168,7 +168,7 @@ defmodule Känni.Repo.Worker do
   def start_link(opts) do
     repo_id = Keyword.fetch!(opts, :repo_id)
     path = Keyword.fetch!(opts, :path)
-    :gen_statem.start_link({:via, Registry, {Känni.Workspace.Registry, repo_id}},
+    :gen_statem.start_link({:via, Registry, {Valkka.Workspace.Registry, repo_id}},
       __MODULE__, opts, [])
   end
 
@@ -221,9 +221,9 @@ defmodule Känni.Repo.Worker do
   end
 
   def initializing(:state_timeout, :open_repo, data) do
-    task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-      with {:ok, handle} <- Känni.Git.Native.repo_open(data.path),
-           {:ok, status} <- Känni.Git.Native.repo_info(handle) do
+    task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+      with {:ok, handle} <- Valkka.Git.Native.repo_open(data.path),
+           {:ok, status} <- Valkka.Git.Native.repo_info(handle) do
         {:ok, handle, status}
       end
     end)
@@ -242,7 +242,7 @@ defmodule Känni.Repo.Worker do
     }
 
     # Register in :pg for distributed discovery
-    :pg.join(Känni.PG, {:repo, data.repo_id}, self())
+    :pg.join(Valkka.PG, {:repo, data.repo_id}, self())
 
     broadcast(data.repo_id, {:repo_opened, new_data.status})
     {:next_state, :idle, new_data}
@@ -295,7 +295,7 @@ defmodule Känni.Repo.Worker do
 
   def idle({:call, from}, {:execute, operation}, data) when data.handle != nil do
     handle = data.handle
-    task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
+    task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
       execute_operation(handle, operation)
     end)
 
@@ -309,7 +309,7 @@ defmodule Känni.Repo.Worker do
 
   def idle({:call, from}, {:query, query}, data) do
     # Queries run synchronously via Task to avoid blocking the statem
-    result = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
+    result = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
       execute_query(data.handle, query)
     end)
     |> Task.await(30_000)
@@ -326,8 +326,8 @@ defmodule Känni.Repo.Worker do
     # Debounced file change event from Watcher.Handler
     # Refresh status without blocking
     handle = data.handle
-    Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-      {:refresh_result, Känni.Git.Native.repo_info(handle)}
+    Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+      {:refresh_result, Valkka.Git.Native.repo_info(handle)}
     end)
 
     :keep_state_and_data
@@ -338,7 +338,7 @@ defmodule Känni.Repo.Worker do
     new_status = translate_status(status)
 
     # Invalidate caches
-    Känni.Cache.StatusCache.invalidate(data.repo_id)
+    Valkka.Cache.StatusCache.invalidate(data.repo_id)
 
     # Only broadcast if status actually changed
     if new_status != data.status do
@@ -435,7 +435,7 @@ defmodule Känni.Repo.Worker do
 
   # Queries are still allowed while operating (reads don't conflict)
   def operating({:call, from}, {:query, query}, data) do
-    result = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
+    result = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
       execute_query(data.handle, query)
     end)
     |> Task.await(30_000)
@@ -458,8 +458,8 @@ defmodule Känni.Repo.Worker do
 
   def merging({:call, from}, {:execute, {:resolve_conflict, path, content}}, data) do
     handle = data.handle
-    task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-      Känni.Git.Native.resolve_conflict(handle, path, content)
+    task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+      Valkka.Git.Native.resolve_conflict(handle, path, content)
     end)
 
     new_data = %{data | current_task: task, pending_op: {from, {:resolve_conflict, path}}}
@@ -468,8 +468,8 @@ defmodule Känni.Repo.Worker do
 
   def merging({:call, from}, {:execute, :finalize_merge}, data) do
     handle = data.handle
-    task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-      Känni.Git.Native.finalize_merge(handle)
+    task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+      Valkka.Git.Native.finalize_merge(handle)
     end)
 
     new_data = %{data | current_task: task, pending_op: {from, :finalize_merge}}
@@ -478,8 +478,8 @@ defmodule Känni.Repo.Worker do
 
   def merging({:call, from}, :abort, data) do
     handle = data.handle
-    task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-      Känni.Git.Native.abort_merge(handle)
+    task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+      Valkka.Git.Native.abort_merge(handle)
     end)
 
     new_data = %{data |
@@ -492,7 +492,7 @@ defmodule Känni.Repo.Worker do
   end
 
   def merging({:call, from}, {:query, query}, data) do
-    result = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
+    result = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
       execute_query(data.handle, query)
     end)
     |> Task.await(30_000)
@@ -519,8 +519,8 @@ defmodule Känni.Repo.Worker do
 
   def rebasing({:call, from}, {:execute, :rebase_continue}, data) do
     handle = data.handle
-    task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-      Känni.Git.Native.rebase_continue(handle)
+    task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+      Valkka.Git.Native.rebase_continue(handle)
     end)
 
     new_data = %{data | current_task: task, pending_op: {from, :rebase_continue}}
@@ -529,8 +529,8 @@ defmodule Känni.Repo.Worker do
 
   def rebasing({:call, from}, {:execute, :rebase_skip}, data) do
     handle = data.handle
-    task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-      Känni.Git.Native.rebase_skip(handle)
+    task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+      Valkka.Git.Native.rebase_skip(handle)
     end)
 
     new_data = %{data | current_task: task, pending_op: {from, :rebase_skip}}
@@ -539,8 +539,8 @@ defmodule Känni.Repo.Worker do
 
   def rebasing({:call, from}, :abort, data) do
     handle = data.handle
-    task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-      Känni.Git.Native.abort_rebase(handle)
+    task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+      Valkka.Git.Native.abort_rebase(handle)
     end)
 
     new_data = %{data |
@@ -553,7 +553,7 @@ defmodule Känni.Repo.Worker do
   end
 
   def rebasing({:call, from}, {:query, query}, data) do
-    result = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
+    result = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
       execute_query(data.handle, query)
     end)
     |> Task.await(30_000)
@@ -621,10 +621,10 @@ defmodule Känni.Repo.Worker do
     end
 
     if data.handle do
-      Känni.Git.Native.repo_close(data.handle)
+      Valkka.Git.Native.repo_close(data.handle)
     end
 
-    :pg.leave(Känni.PG, {:repo, data.repo_id}, self())
+    :pg.leave(Valkka.PG, {:repo, data.repo_id}, self())
 
     Logger.info("Repo.Worker terminated",
       repo_id: data.repo_id, reason: inspect(reason))
@@ -637,69 +637,69 @@ defmodule Känni.Repo.Worker do
   # ------------------------------------------------------------------
 
   defp execute_operation(handle, {:commit, message, opts}) do
-    Känni.Git.Native.commit(handle, message, opts)
+    Valkka.Git.Native.commit(handle, message, opts)
   end
 
   defp execute_operation(handle, {:stage, paths}) do
-    Känni.Git.Native.stage(handle, paths)
+    Valkka.Git.Native.stage(handle, paths)
   end
 
   defp execute_operation(handle, {:unstage, paths}) do
-    Känni.Git.Native.unstage(handle, paths)
+    Valkka.Git.Native.unstage(handle, paths)
   end
 
   defp execute_operation(handle, {:checkout, ref}) do
-    Känni.Git.Native.checkout(handle, ref)
+    Valkka.Git.Native.checkout(handle, ref)
   end
 
   defp execute_operation(handle, {:merge, source}) do
-    Känni.Git.Native.merge(handle, source)
+    Valkka.Git.Native.merge(handle, source)
   end
 
   defp execute_operation(handle, {:rebase, opts}) do
-    Känni.Git.Native.rebase(handle, opts)
+    Valkka.Git.Native.rebase(handle, opts)
   end
 
   defp execute_operation(handle, {:diff, from, to}) do
-    Känni.Git.Native.diff(handle, from, to)
+    Valkka.Git.Native.diff(handle, from, to)
   end
 
   defp execute_operation(handle, {:semantic_diff, from, to}) do
-    Känni.Git.Native.semantic_diff(handle, from, to)
+    Valkka.Git.Native.semantic_diff(handle, from, to)
   end
 
   defp execute_operation(handle, {:push, remote, branch, opts}) do
-    Känni.Git.Native.push(handle, remote, branch, opts)
+    Valkka.Git.Native.push(handle, remote, branch, opts)
   end
 
   defp execute_operation(handle, {:cherry_pick, oid}) do
-    Känni.Git.Native.cherry_pick(handle, oid)
+    Valkka.Git.Native.cherry_pick(handle, oid)
   end
 
   defp execute_operation(handle, {:squash, count, message}) do
-    Känni.Git.Native.squash(handle, count, message)
+    Valkka.Git.Native.squash(handle, count, message)
   end
 
   defp execute_operation(handle, {:stash, message}) do
-    Känni.Git.Native.stash(handle, message)
+    Valkka.Git.Native.stash(handle, message)
   end
 
   defp execute_operation(handle, :stash_pop) do
-    Känni.Git.Native.stash_pop(handle)
+    Valkka.Git.Native.stash_pop(handle)
   end
 
   defp execute_operation(_handle, op) do
     {:error, {:unknown_operation, op}}
   end
 
-  defp execute_query(handle, {:log, opts}), do: Känni.Git.Native.log(handle, opts)
-  defp execute_query(handle, :branches), do: Känni.Git.Native.branches(handle)
-  defp execute_query(handle, {:blame, path}), do: Känni.Git.Native.blame(handle, path)
-  defp execute_query(handle, {:file_history, path, opts}), do: Känni.Git.Native.file_history(handle, path, opts)
-  defp execute_query(handle, {:commit_detail, oid}), do: Känni.Git.Native.commit_detail(handle, oid)
-  defp execute_query(handle, {:compute_graph, opts}), do: Känni.Git.Native.compute_graph(handle, opts)
-  defp execute_query(handle, {:search_commits, query, opts}), do: Känni.Git.Native.search_commits(handle, query, opts)
-  defp execute_query(handle, :info), do: Känni.Git.Native.repo_info(handle)
+  defp execute_query(handle, {:log, opts}), do: Valkka.Git.Native.log(handle, opts)
+  defp execute_query(handle, :branches), do: Valkka.Git.Native.branches(handle)
+  defp execute_query(handle, {:blame, path}), do: Valkka.Git.Native.blame(handle, path)
+  defp execute_query(handle, {:file_history, path, opts}), do: Valkka.Git.Native.file_history(handle, path, opts)
+  defp execute_query(handle, {:commit_detail, oid}), do: Valkka.Git.Native.commit_detail(handle, oid)
+  defp execute_query(handle, {:compute_graph, opts}), do: Valkka.Git.Native.compute_graph(handle, opts)
+  defp execute_query(handle, {:search_commits, query, opts}), do: Valkka.Git.Native.search_commits(handle, query, opts)
+  defp execute_query(handle, :info), do: Valkka.Git.Native.repo_info(handle)
   defp execute_query(_handle, query), do: {:error, {:unknown_query, query}}
 
   defp classify_result({:ok, %{type: "conflict", conflicts: files}}, {:merge, _}) do
@@ -715,7 +715,7 @@ defmodule Känni.Repo.Worker do
   defp classify_result({:error, reason}, _op), do: {:error, reason}
 
   defp refresh_status_sync(data) do
-    case Känni.Git.Native.repo_info(data.handle) do
+    case Valkka.Git.Native.repo_info(data.handle) do
       {:ok, status} -> %{data | status: translate_status(status)}
       {:error, _} -> data
     end
@@ -735,13 +735,13 @@ defmodule Känni.Repo.Worker do
   end
 
   defp invalidate_caches(repo_id, _operation) do
-    Känni.Cache.StatusCache.invalidate(repo_id)
-    Känni.Cache.GraphCache.invalidate(repo_id)
+    Valkka.Cache.StatusCache.invalidate(repo_id)
+    Valkka.Cache.GraphCache.invalidate(repo_id)
     # Commit cache entries are immutable by OID, no invalidation needed
   end
 
   defp broadcast(repo_id, message) do
-    Phoenix.PubSub.broadcast(Känni.PubSub, "repo:#{repo_id}:status", message)
+    Phoenix.PubSub.broadcast(Valkka.PubSub, "repo:#{repo_id}:status", message)
   end
 end
 ```
@@ -779,15 +779,15 @@ NIFs must never execute in the gen_statem process. A blocking NIF would freeze t
 ```elixir
 # WRONG -- blocks the statem process:
 def idle({:call, from}, {:execute, {:diff, from_ref, to_ref}}, data) do
-  result = Känni.Git.Native.diff(data.handle, from_ref, to_ref)  # BLOCKS
+  result = Valkka.Git.Native.diff(data.handle, from_ref, to_ref)  # BLOCKS
   {:keep_state_and_data, [{:reply, from, result}]}
 end
 
 # RIGHT -- delegates to Task.Supervisor:
 def idle({:call, from}, {:execute, {:diff, from_ref, to_ref}}, data) do
   handle = data.handle
-  task = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
-    Känni.Git.Native.diff(handle, from_ref, to_ref)
+  task = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
+    Valkka.Git.Native.diff(handle, from_ref, to_ref)
   end)
 
   new_data = %{data | current_task: task, pending_op: {from, {:diff, from_ref, to_ref}}}
@@ -805,7 +805,7 @@ end
 ```elixir
 # In Application children:
 {Task.Supervisor,
-  name: Känni.NifTasks,
+  name: Valkka.NifTasks,
   max_children: 20       # Prevent runaway task creation
 }
 ```
@@ -821,7 +821,7 @@ def operating({:call, from}, {:query, query}, data) do
   # This is safe: the Mutex in RepoHandle serializes NIF access.
   # The query will block until the in-flight operation finishes its
   # NIF call, then execute. But the statem process itself is not blocked.
-  result = Task.Supervisor.async_nolink(Känni.NifTasks, fn ->
+  result = Task.Supervisor.async_nolink(Valkka.NifTasks, fn ->
     execute_query(data.handle, query)
   end)
   |> Task.await(30_000)
@@ -837,10 +837,10 @@ end
 ### Table Definitions
 
 ```elixir
-defmodule Känni.Cache.GraphCache do
+defmodule Valkka.Cache.GraphCache do
   use GenServer
 
-  @table :kanni_graph_cache
+  @table :valkka_graph_cache
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -901,10 +901,10 @@ end
 ```
 
 ```elixir
-defmodule Känni.Cache.CommitCache do
+defmodule Valkka.Cache.CommitCache do
   use GenServer
 
-  @table :kanni_commit_cache
+  @table :valkka_commit_cache
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -947,10 +947,10 @@ end
 ```
 
 ```elixir
-defmodule Känni.Cache.StatusCache do
+defmodule Valkka.Cache.StatusCache do
   use GenServer
 
-  @table :kanni_status_cache
+  @table :valkka_status_cache
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -1039,12 +1039,12 @@ AI Provider API
   │ HTTP stream (SSE / chunked)
   │
   ▼
-Känni.AI.StreamSession (GenServer, one per active stream)
+Valkka.AI.StreamSession (GenServer, one per active stream)
   │
   │ GenStage demand-driven
   │
   ▼
-Känni.AI.StreamBuffer (GenStage producer)
+Valkka.AI.StreamBuffer (GenStage producer)
   │
   │ PubSub broadcast (filtered by subscription)
   │
@@ -1055,7 +1055,7 @@ LiveView consumer (handle_info)
 ### StreamSession (Producer)
 
 ```elixir
-defmodule Känni.AI.StreamSession do
+defmodule Valkka.AI.StreamSession do
   use GenServer
 
   @max_buffer 500          # Max chunks buffered before applying backpressure
@@ -1082,12 +1082,12 @@ defmodule Känni.AI.StreamSession do
     session_id = Keyword.fetch!(opts, :session_id)
     repo_id = Keyword.fetch!(opts, :repo_id)
     prompt = Keyword.fetch!(opts, :prompt)
-    provider = Keyword.get(opts, :provider, Känni.AI.Providers.Anthropic)
+    provider = Keyword.get(opts, :provider, Valkka.AI.Providers.Anthropic)
 
     topic = "repo:#{repo_id}:ai:#{session_id}"
 
     # Track LiveView consumers via PubSub presence
-    Phoenix.PubSub.subscribe(Känni.PubSub, "#{topic}:control")
+    Phoenix.PubSub.subscribe(Valkka.PubSub, "#{topic}:control")
 
     # Start the HTTP stream to the AI provider
     {:ok, http_ref} = provider.stream_start(prompt)
@@ -1126,13 +1126,13 @@ defmodule Känni.AI.StreamSession do
     # Flush remaining buffer
     flush_buffer(state)
 
-    Phoenix.PubSub.broadcast(Känni.PubSub, state.topic, {:ai_complete, final_response})
+    Phoenix.PubSub.broadcast(Valkka.PubSub, state.topic, {:ai_complete, final_response})
     {:stop, :normal, state}
   end
 
   # AI stream error
   def handle_info({:ai_error, reason}, state) do
-    Phoenix.PubSub.broadcast(Känni.PubSub, state.topic, {:ai_error, reason})
+    Phoenix.PubSub.broadcast(Valkka.PubSub, state.topic, {:ai_error, reason})
     {:stop, :normal, state}
   end
 
@@ -1167,7 +1167,7 @@ defmodule Känni.AI.StreamSession do
 
     if chunks != [] do
       # Batch broadcast -- single PubSub message with all chunks
-      Phoenix.PubSub.broadcast(Känni.PubSub, state.topic, {:ai_chunks, chunks})
+      Phoenix.PubSub.broadcast(Valkka.PubSub, state.topic, {:ai_chunks, chunks})
     end
 
     %{state | buffer: new_buffer, buffer_size: 0}
@@ -1189,8 +1189,8 @@ end
 ### LiveView Consumer
 
 ```elixir
-defmodule KänniWeb.AIComponent do
-  use KänniWeb, :live_component
+defmodule ValkkaWeb.AIComponent do
+  use ValkkaWeb, :live_component
 
   def mount(socket) do
     {:ok, assign(socket, ai_text: "", streaming: false)}
@@ -1202,10 +1202,10 @@ defmodule KänniWeb.AIComponent do
     topic = "repo:#{repo_id}:ai:#{session_id}"
 
     # Subscribe to AI stream
-    Phoenix.PubSub.subscribe(Känni.PubSub, topic)
+    Phoenix.PubSub.subscribe(Valkka.PubSub, topic)
 
     # Start the stream
-    {:ok, _pid} = Känni.AI.StreamManager.start_stream(
+    {:ok, _pid} = Valkka.AI.StreamManager.start_stream(
       session_id: session_id,
       repo_id: repo_id,
       prompt: prompt
@@ -1250,7 +1250,7 @@ A single `Cmd+S` in an editor can generate 3-5 FSEvents (write, chmod, rename-sw
 ### Implementation
 
 ```elixir
-defmodule Känni.Watcher.Handler do
+defmodule Valkka.Watcher.Handler do
   use GenServer
 
   @debounce_ms 100
@@ -1308,7 +1308,7 @@ defmodule Känni.Watcher.Handler do
 
     if paths != [] do
       # Notify the Repo.Worker about the batch of changes
-      case Registry.lookup(Känni.Workspace.Registry, state.repo_id) do
+      case Registry.lookup(Valkka.Workspace.Registry, state.repo_id) do
         [{pid, _}] ->
           send(pid, {:file_changed, paths})
         [] ->
@@ -1317,7 +1317,7 @@ defmodule Känni.Watcher.Handler do
 
       # Broadcast for any other subscribers (LiveView, Sykli monitor)
       Phoenix.PubSub.broadcast(
-        Känni.PubSub,
+        Valkka.PubSub,
         "repo:#{state.repo_id}:status",
         {:files_changed, paths}
       )
@@ -1402,30 +1402,30 @@ t=110ms  flush_changes → batch: [file_a.ex, file_b.ex]
 ### Broadcasting Pattern
 
 ```elixir
-defmodule Känni.Events do
+defmodule Valkka.Events do
   @moduledoc "Centralized event broadcasting. All PubSub messages go through here."
 
   def repo_status_changed(repo_id, status) do
-    Phoenix.PubSub.broadcast(Känni.PubSub, "repo:#{repo_id}:status",
+    Phoenix.PubSub.broadcast(Valkka.PubSub, "repo:#{repo_id}:status",
       {:repo_status, repo_id, status})
 
     # Also broadcast to workspace-level topic for dashboard
-    Phoenix.PubSub.broadcast(Känni.PubSub, "workspace:status",
+    Phoenix.PubSub.broadcast(Valkka.PubSub, "workspace:status",
       {:repo_status, repo_id, status})
   end
 
   def graph_updated(repo_id) do
-    Phoenix.PubSub.broadcast(Känni.PubSub, "repo:#{repo_id}:graph",
+    Phoenix.PubSub.broadcast(Valkka.PubSub, "repo:#{repo_id}:graph",
       {:graph_updated, repo_id})
   end
 
   def ci_status_updated(repo_id, ci_status) do
-    Phoenix.PubSub.broadcast(Känni.PubSub, "repo:#{repo_id}:ci",
+    Phoenix.PubSub.broadcast(Valkka.PubSub, "repo:#{repo_id}:ci",
       {:ci_status, repo_id, ci_status})
   end
 
   def system_health(component, status) do
-    Phoenix.PubSub.broadcast(Känni.PubSub, "system:health",
+    Phoenix.PubSub.broadcast(Valkka.PubSub, "system:health",
       {:health, component, status})
   end
 end
@@ -1453,7 +1453,7 @@ end
 ### Process Groups with :pg
 
 ```elixir
-defmodule Känni.Distribution do
+defmodule Valkka.Distribution do
   @moduledoc """
   Distribution primitives. Uses :pg (OTP 23+) for process group management.
   :pg works across connected BEAM nodes automatically.
@@ -1462,7 +1462,7 @@ defmodule Känni.Distribution do
   @doc "Find the Repo.Worker process for a given repo_id, anywhere in the cluster."
   @spec find_repo_worker(String.t()) :: {:ok, pid()} | {:error, :not_found}
   def find_repo_worker(repo_id) do
-    case :pg.get_members(Känni.PG, {:repo, repo_id}) do
+    case :pg.get_members(Valkka.PG, {:repo, repo_id}) do
       [pid | _] -> {:ok, pid}
       [] -> {:error, :not_found}
     end
@@ -1471,13 +1471,13 @@ defmodule Känni.Distribution do
   @doc "List all repo workers across the cluster."
   @spec all_repo_workers() :: [{String.t(), pid(), node()}]
   def all_repo_workers do
-    :pg.which_groups(Känni.PG)
+    :pg.which_groups(Valkka.PG)
     |> Enum.filter(fn
       {:repo, _id} -> true
       _ -> false
     end)
     |> Enum.flat_map(fn {:repo, id} = group ->
-      :pg.get_members(Känni.PG, group)
+      :pg.get_members(Valkka.PG, group)
       |> Enum.map(fn pid -> {id, pid, node(pid)} end)
     end)
   end
@@ -1487,8 +1487,8 @@ end
 ### Start :pg in Application
 
 ```elixir
-# Add to Känni.Application.start/2 children, before Repo.Supervisor:
-:pg.start_link(Känni.PG)
+# Add to Valkka.Application.start/2 children, before Repo.Supervisor:
+:pg.start_link(Valkka.PG)
 ```
 
 ### State Classification
@@ -1507,7 +1507,7 @@ end
 
 ```elixir
 # config/prod.exs
-config :kanni, Känni.PubSub,
+config :valkka, Valkka.PubSub,
   adapter: Phoenix.PubSub.PG2  # Automatically distributes across connected nodes
 ```
 
@@ -1516,7 +1516,7 @@ With `PG2` adapter, a `Phoenix.PubSub.broadcast` on node A is received by subscr
 ### Network Partition Handling
 
 ```elixir
-defmodule Känni.Distribution.PartitionHandler do
+defmodule Valkka.Distribution.PartitionHandler do
   use GenServer
 
   @impl true
@@ -1530,11 +1530,11 @@ defmodule Känni.Distribution.PartitionHandler do
     Logger.warning("Node disconnected: #{node}. Switching to local-only mode for remote repos.")
 
     # Repos on the disconnected node become unavailable
-    remote_repos = Känni.Distribution.all_repo_workers()
+    remote_repos = Valkka.Distribution.all_repo_workers()
     |> Enum.filter(fn {_id, _pid, n} -> n == node end)
 
     for {repo_id, _pid, _node} <- remote_repos do
-      Känni.Events.repo_status_changed(repo_id, %{state: :unreachable, node: node})
+      Valkka.Events.repo_status_changed(repo_id, %{state: :unreachable, node: node})
     end
 
     new_nodes = List.delete(state.connected_nodes, node)
@@ -1555,7 +1555,7 @@ end
 
 ### Local-Only Mode
 
-When Känni starts and no other nodes are connected, it operates in local-only mode. No code path changes. Distribution is additive:
+When Valkka starts and no other nodes are connected, it operates in local-only mode. No code path changes. Distribution is additive:
 
 - `:pg` works with a single node (groups are local).
 - `Phoenix.PubSub.PG2` works with a single node (no cross-node broadcast needed).
@@ -1568,7 +1568,7 @@ When Känni starts and no other nodes are connected, it operates in local-only m
 ### The Shutdown Module
 
 ```elixir
-defmodule Känni.Shutdown do
+defmodule Valkka.Shutdown do
   @moduledoc """
   Handles graceful shutdown on SIGTERM.
 
@@ -1597,7 +1597,7 @@ defmodule Känni.Shutdown do
 
   @impl true
   def terminate(_reason, _state) do
-    Logger.info("Känni shutting down gracefully...")
+    Logger.info("Valkka shutting down gracefully...")
     start = System.monotonic_time(:millisecond)
 
     # Phase 1: Flush ETS caches to disk (fast, ~10ms)
@@ -1622,11 +1622,11 @@ defmodule Känni.Shutdown do
   end
 
   defp flush_caches do
-    cache_dir = Application.get_env(:kanni, :cache_dir, "/tmp/kanni_cache")
+    cache_dir = Application.get_env(:valkka, :cache_dir, "/tmp/valkka_cache")
     File.mkdir_p!(cache_dir)
 
     try do
-      Känni.Cache.StatusCache.flush_to_disk(Path.join(cache_dir, "status.etf"))
+      Valkka.Cache.StatusCache.flush_to_disk(Path.join(cache_dir, "status.etf"))
       Logger.debug("ETS caches flushed to #{cache_dir}")
     rescue
       e -> Logger.warning("Failed to flush caches: #{inspect(e)}")
@@ -1643,7 +1643,7 @@ defmodule Känni.Shutdown do
     # - Leaves :pg groups
     #
     # The Supervisor shutdown order ensures workers terminate before
-    # Task.Supervisor (Känni.NifTasks), so in-flight tasks can complete.
+    # Task.Supervisor (Valkka.NifTasks), so in-flight tasks can complete.
     :ok
   end
 end
@@ -1654,18 +1654,18 @@ end
 OTP shuts down children in reverse start order. Our tree shuts down as:
 
 ```
-1. Känni.Shutdown.terminate/3 runs    — flushes caches
-2. KänniWeb.Endpoint stops            — no new HTTP connections
-3. Känni.Kerto.Hooks stops            — no more occurrence emission
-4. Känni.Sykli.StatusMonitor stops    — no more CI polling
-5. Känni.Workspace.Registry stops     — registry cleaned up
-6. Känni.AI.Supervisor stops          — AI streams cancelled
-7. Känni.Repo.Supervisor stops        — each WorkerSupervisor stops:
+1. Valkka.Shutdown.terminate/3 runs    — flushes caches
+2. ValkkaWeb.Endpoint stops            — no new HTTP connections
+3. Valkka.Kerto.Hooks stops            — no more occurrence emission
+4. Valkka.Sykli.StatusMonitor stops    — no more CI polling
+5. Valkka.Workspace.Registry stops     — registry cleaned up
+6. Valkka.AI.Supervisor stops          — AI streams cancelled
+7. Valkka.Repo.Supervisor stops        — each WorkerSupervisor stops:
    a. Watcher.Handler stops           — file watching stops
    b. Repo.Worker.terminate/3 runs    — closes NIF handles, kills tasks
-8. Känni.NifTasks stops               — any orphan tasks killed
-9. Känni.CacheSupervisor stops        — ETS tables destroyed
-10. Känni.PubSub stops                — PubSub cleaned up
+8. Valkka.NifTasks stops               — any orphan tasks killed
+9. Valkka.CacheSupervisor stops        — ETS tables destroyed
+10. Valkka.PubSub stops                — PubSub cleaned up
 ```
 
 ### Release Configuration
@@ -1685,16 +1685,16 @@ OTP shuts down children in reverse start order. Our tree shuts down as:
 
 ```elixir
 # config/runtime.exs
-config :kanni, :shutdown_timeout, 10_000
+config :valkka, :shutdown_timeout, 10_000
 
 # In mix.exs release config:
 releases: [
-  kanni: [
-    applications: [kanni: :permanent],
+  valkka: [
+    applications: [valkka: :permanent],
     steps: [:assemble, :tar],
     # 10 second shutdown timeout for the application
     shutdown: [
-      kanni: 10_000
+      valkka: 10_000
     ]
   ]
 ]
@@ -1711,8 +1711,8 @@ SIGTERM received
            1. If current_task exists:
               Task.shutdown(current_task, 5_000)  # wait up to 5s
            2. If handle exists:
-              Känni.Git.Native.repo_close(handle)  # release Mutex, drop repo
-           3. :pg.leave(Känni.PG, {:repo, repo_id}, self())
+              Valkka.Git.Native.repo_close(handle)  # release Mutex, drop repo
+           3. :pg.leave(Valkka.PG, {:repo, repo_id}, self())
            4. Log shutdown
 ```
 
@@ -1725,14 +1725,14 @@ A complete example of a repo being opened, used, and shut down:
 ```
 1. User adds ~/projects/my-app to workspace
 
-2. Känni.Repo.Manager.open("my-app", "~/projects/my-app")
+2. Valkka.Repo.Manager.open("my-app", "~/projects/my-app")
    → DynamicSupervisor starts a WorkerSupervisor for this repo
    → WorkerSupervisor starts:
      a. Repo.Worker (gen_statem) in :initializing state
      b. Watcher.Handler watching ~/projects/my-app
 
 3. Repo.Worker :initializing
-   → Spawns Task: Känni.Git.Native.repo_open + repo_info
+   → Spawns Task: Valkka.Git.Native.repo_open + repo_info
    → Task succeeds → transition to :idle
    → Joins :pg group {:repo, "my-app"}
    → Broadcasts {:repo_opened, status}

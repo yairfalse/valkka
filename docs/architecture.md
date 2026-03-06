@@ -1,4 +1,4 @@
-# Känni Architecture
+# Valkka Architecture
 
 > AI-native git command center for agent-driven workflows.
 > For people who don't open the editor.
@@ -9,7 +9,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Känni Application                     │
+│                    Valkka Application                     │
 │                                                         │
 │  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │
 │  │   LiveView   │  │  AI Engine   │  │  Repo Manager  │ │
@@ -60,36 +60,36 @@
 ## 2. Supervision Tree
 
 ```
-Känni.Application
-├── Känni.Repo.Supervisor (DynamicSupervisor)
-│   ├── Känni.Repo.Worker (GenServer, per repo)
+Valkka.Application
+├── Valkka.Repo.Supervisor (DynamicSupervisor)
+│   ├── Valkka.Repo.Worker (GenServer, per repo)
 │   │   ├── Holds Rust ResourceArc to git2 Repository
 │   │   ├── Handles all git operations for this repo
 │   │   ├── Publishes state changes via PubSub
 │   │   └── Monitors file system for changes
-│   ├── Känni.Repo.Worker (repo 2)
-│   └── Känni.Repo.Worker (repo N)
+│   ├── Valkka.Repo.Worker (repo 2)
+│   └── Valkka.Repo.Worker (repo N)
 │
-├── Känni.AI.Supervisor
-│   ├── Känni.AI.StreamManager (GenServer)
+├── Valkka.AI.Supervisor
+│   ├── Valkka.AI.StreamManager (GenServer)
 │   │   ├── Manages concurrent AI requests
 │   │   ├── Rate limiting, backpressure
 │   │   └── Streams tokens to PubSub topics
-│   └── Känni.AI.ContextBuilder (GenServer)
+│   └── Valkka.AI.ContextBuilder (GenServer)
 │       ├── Builds context from repo state for AI prompts
 │       └── Manages token budgets
 │
-├── Känni.Workspace.Registry (Registry)
+├── Valkka.Workspace.Registry (Registry)
 │   └── Maps workspace IDs to repo workers
 │
-├── Känni.FileWatcher.Supervisor (DynamicSupervisor)
+├── Valkka.FileWatcher.Supervisor (DynamicSupervisor)
 │   ├── One FileSystem watcher per monitored repo
 │   └── Publishes change events to repo workers
 │
-├── KänniWeb.Endpoint (Phoenix)
+├── ValkkaWeb.Endpoint (Phoenix)
 │   └── LiveView connections
 │
-└── Känni.PubSub (Phoenix.PubSub)
+└── Valkka.PubSub (Phoenix.PubSub)
     Topics:
     ├── "repo:{repo_id}" — repo state changes
     ├── "repo:{repo_id}:graph" — graph updates
@@ -112,7 +112,7 @@ This is the most critical architectural decision. The boundary must be:
 - **Async-safe**: All NIFs run on dirty schedulers (never block BEAM schedulers)
 - **Data-copying**: Rust returns Elixir terms (maps, lists, binaries). No shared mutable state across the boundary except `ResourceArc` handles.
 
-### NIF Module: `Känni.Git.Native`
+### NIF Module: `Valkka.Git.Native`
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -182,8 +182,8 @@ fn repo_open(path: String) -> Result<ResourceArc<RepoHandle>, Error> {
 
 ```elixir
 # Elixir side — the handle is opaque
-{:ok, handle} = Känni.Git.Native.repo_open("/path/to/repo")
-commits = Känni.Git.Native.log(handle, %{limit: 100})
+{:ok, handle} = Valkka.Git.Native.repo_open("/path/to/repo")
+commits = Valkka.Git.Native.log(handle, %{limit: 100})
 # handle is garbage collected → Rust drops the Repository
 ```
 
@@ -217,7 +217,7 @@ This is computed in Rust using tree-sitter for language-aware parsing. The AI la
 ### Page Architecture
 
 ```
-KänniWeb.Router
+ValkkaWeb.Router
 ├── / → DashboardLive (workspace overview, all repos)
 ├── /repo/:id → RepoLive (single repo view)
 │   ├── RepoLive.GraphComponent (commit graph)
@@ -247,10 +247,10 @@ This is the primary interface. Not the graph, not the file tree — the chat.
 
 ```
 ┌─────────────────────────────────────────────┐
-│ Känni — workspace: ~/projects                │
+│ Valkka — workspace: ~/projects                │
 ├─────────────────────────────────────────────┤
 │                                             │
-│  ┌─ repo: kanni (main) ──────────────────┐  │
+│  ┌─ repo: valkka (main) ──────────────────┐  │
 │  │ 3 uncommitted changes                 │  │
 │  │ 2 branches ahead of origin            │  │
 │  └───────────────────────────────────────┘  │
@@ -261,9 +261,9 @@ This is the primary interface. Not the graph, not the file tree — the chat.
 │                                             │
 │  ─────────── conversation ────────────────  │
 │                                             │
-│  you: what changed in kanni today?          │
+│  you: what changed in valkka today?          │
 │                                             │
-│  känni: 3 files modified in kanni:          │
+│  valkka: 3 files modified in valkka:          │
 │    • lib/repo/worker.ex — added timeout     │
 │      handling to git operations (+15, -3)   │
 │    • lib/ai/stream.ex — new file,           │
@@ -278,7 +278,7 @@ This is the primary interface. Not the graph, not the file tree — the chat.
 │                                             │
 │  you: show me the graph for last 2 weeks    │
 │                                             │
-│  känni: [interactive graph renders here]    │
+│  valkka: [interactive graph renders here]    │
 │                                             │
 │  ──────────────────────────────────────────  │
 │  > type a command or ask a question...      │
@@ -306,7 +306,7 @@ User input
 ### Intent Categories
 
 ```elixir
-defmodule Känni.AI.Intent do
+defmodule Valkka.AI.Intent do
   # Direct git operations
   {:git_op, :commit, %{message: "..."}}
   {:git_op, :merge, %{source: "feat/x", target: "main"}}
@@ -330,7 +330,7 @@ end
 ### Streaming Architecture
 
 ```elixir
-defmodule Känni.AI.StreamManager do
+defmodule Valkka.AI.StreamManager do
   use GenServer
 
   def request(repo_id, intent, opts \\ []) do
@@ -393,9 +393,9 @@ end
 ## 7. Project Structure
 
 ```
-kanni/
+valkka/
 ├── lib/
-│   ├── kanni/
+│   ├── valkka/
 │   │   ├── application.ex          # Supervision tree
 │   │   ├── repo/
 │   │   │   ├── worker.ex           # Per-repo GenServer
@@ -420,7 +420,7 @@ kanni/
 │   │       ├── supervisor.ex
 │   │       └── handler.ex          # File change events
 │   │
-│   └── kanni_web/
+│   └── valkka_web/
 │       ├── router.ex
 │       ├── live/
 │       │   ├── dashboard_live.ex   # Workspace overview
@@ -438,7 +438,7 @@ kanni/
 │       │   └── diff_renderer.js    # Syntax-highlighted diffs
 │       └── layouts/
 │
-├── native/kanni_git/               # Rust NIF crate
+├── native/valkka_git/               # Rust NIF crate
 │   ├── Cargo.toml
 │   └── src/
 │       ├── lib.rs                  # NIF entry point
@@ -469,12 +469,12 @@ kanni/
 │   └── prod.exs
 │
 ├── test/
-│   ├── kanni/
+│   ├── valkka/
 │   │   ├── repo/
 │   │   ├── git/
 │   │   ├── ai/
 │   │   └── workspace/
-│   └── kanni_web/
+│   └── valkka_web/
 │       └── live/
 │
 ├── docs/
@@ -570,7 +570,7 @@ mix release → single binary with embedded BEAM
   + bundled Rust NIF .so/.dylib
   + bundled assets (CSS/JS)
 
-User runs: ./kanni
+User runs: ./valkka
 Opens browser: http://localhost:4420
 ```
 
@@ -595,8 +595,8 @@ The same architecture scales to a hosted service:
 
 2. **PubSub makes everything reactive for free.** File changes, AI responses, git operations — all flow through the same mechanism to the UI.
 
-3. **Process-per-repo gives fault tolerance no other git client has.** GitKraken crashes on one repo, you lose everything. Känni shrugs it off.
+3. **Process-per-repo gives fault tolerance no other git client has.** GitKraken crashes on one repo, you lose everything. Valkka shrugs it off.
 
-4. **Chat-first means AI isn't bolted on — it IS the interface.** Every other git client adds AI as a feature. Känni is built around it.
+4. **Chat-first means AI isn't bolted on — it IS the interface.** Every other git client adds AI as a feature. Valkka is built around it.
 
 5. **The semantic diff is the technical moat.** No other git client tells you "this function's signature changed and a new validation function was added." They show you green and red lines.

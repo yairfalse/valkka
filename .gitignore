@@ -23,7 +23,7 @@ erl_crash.dump
 /tmp/
 
 # Ignore package tarball (built via "mix hex.build").
-kanni-*.tar
+valkka-*.tar
 
 # Ignore assets that are produced by build tools.
 /priv/static/assets/
@@ -36,7 +36,7 @@ npm-debug.log
 /assets/node_modules/
 
 # Rust NIF build artifacts
-/native/kanni_git/target/
+/native/valkka_git/target/
 /priv/native/
 
 

@@ -1,16 +1,16 @@
-# Känni × Kerto Integration
+# Valkka × Kerto Integration
 
-> Every git operation Känni performs becomes knowledge in Kerto's graph.
-> Kerto makes Känni smarter over time.
+> Every git operation Valkka performs becomes knowledge in Kerto's graph.
+> Kerto makes Valkka smarter over time.
 
 ---
 
 ## 1. The Integration
 
-Känni performs git operations. Kerto remembers what happened and what it means.
+Valkka performs git operations. Kerto remembers what happened and what it means.
 
 ```
-Känni (git ops)                    Kerto (knowledge graph)
+Valkka (git ops)                    Kerto (knowledge graph)
 ─────────────                      ─────────────────────
 commit → ────────────────────────→ vcs.commit occurrence
 merge conflict → ────────────────→ context.learning occurrence
@@ -28,12 +28,12 @@ query "why does auth break?" ←───← Kerto renders context
 
 ## 2. Occurrence Emission
 
-Every meaningful Känni action emits a Kerto occurrence.
+Every meaningful Valkka action emits a Kerto occurrence.
 
 ### Git Operations → Occurrences
 
 ```elixir
-defmodule Känni.Kerto.Emitter do
+defmodule Valkka.Kerto.Emitter do
   @moduledoc "Emits Kerto occurrences for git operations."
 
   alias Kerto.Ingestion.Occurrence
@@ -41,7 +41,7 @@ defmodule Känni.Kerto.Emitter do
   def on_commit(repo_id, commit) do
     %Occurrence{
       type: "vcs.commit",
-      source: :kanni,
+      source: :valkka,
       data: %{
         repo: repo_id,
         oid: commit.oid,
@@ -57,7 +57,7 @@ defmodule Känni.Kerto.Emitter do
   def on_merge_conflict(repo_id, source, target, conflict_files) do
     %Occurrence{
       type: "context.learning",
-      source: :kanni,
+      source: :valkka,
       data: %{
         subject_kind: :file,
         subject_name: hd(conflict_files),
@@ -74,7 +74,7 @@ defmodule Känni.Kerto.Emitter do
     for suggestion <- review.overall_suggestions do
       %Occurrence{
         type: "context.decision",
-        source: :kanni,
+        source: :valkka,
         data: %{
           subject_kind: :concept,
           subject_name: suggestion.summary,
@@ -104,9 +104,9 @@ defmodule Känni.Kerto.Emitter do
 end
 ```
 
-### Occurrence Types Känni Emits
+### Occurrence Types Valkka Emits
 
-| Känni Action | Kerto Occurrence | What Kerto Learns |
+| Valkka Action | Kerto Occurrence | What Kerto Learns |
 |---|---|---|
 | Commit | `vcs.commit` | Co-changed files (`:often_changes_with`) |
 | Merge conflict | `context.learning` | Which files conflict (`:breaks`) |
@@ -117,15 +117,15 @@ end
 
 ---
 
-## 3. Kerto Context in Känni
+## 3. Kerto Context in Valkka
 
-When a user asks about a file or opens a repo, Känni queries Kerto for context.
+When a user asks about a file or opens a repo, Valkka queries Kerto for context.
 
 ### Contextual Enrichment
 
 ```elixir
-defmodule Känni.Kerto.ContextProvider do
-  @moduledoc "Enriches Känni views with Kerto knowledge."
+defmodule Valkka.Kerto.ContextProvider do
+  @moduledoc "Enriches Valkka views with Kerto knowledge."
 
   def enrich_diff(repo_id, files) do
     # For each file in a diff, ask Kerto what it knows
@@ -167,7 +167,7 @@ end
 ```
 you: show me the diff for feat/payments
 
-känni: 3 files changed in feat/payments:
+valkka: 3 files changed in feat/payments:
 
   • src/payments/handler.go (+45, -12)
     ⚠ Kerto: This file often breaks billing_test.go
@@ -190,12 +190,12 @@ känni: 3 files changed in feat/payments:
 Use Kerto's EWMA to weight branch activity.
 
 ```elixir
-defmodule Känni.Kerto.BranchHealth do
+defmodule Valkka.Kerto.BranchHealth do
   @moduledoc "Uses EWMA to track branch freshness and health."
 
   def assess(repo_id, branch) do
     # Recent commits increase weight, time decays it
-    commits = Känni.Git.Commands.log(repo_id, %{branch: branch, limit: 50})
+    commits = Valkka.Git.Commands.log(repo_id, %{branch: branch, limit: 50})
 
     activity_weight = commits
     |> Enum.reduce(0.0, fn commit, acc ->
@@ -240,7 +240,7 @@ Branch Health:
 
 ## 5. Content-Addressed Identity
 
-Känni uses Kerto's identity model for consistent entity identification.
+Valkka uses Kerto's identity model for consistent entity identification.
 
 ```elixir
 # Same file across repos, agents, and time = same Kerto node
@@ -248,7 +248,7 @@ Kerto.Graph.Identity.compute_id(:file, "src/auth/handler.go")
 # → always the same hash, regardless of who references it
 
 # This means:
-# - Känni's diff mentions auth/handler.go
+# - Valkka's diff mentions auth/handler.go
 # - Sykli's CI mentions auth/handler.go
 # - Claude Code agent mentions auth/handler.go
 # All point to the SAME Kerto node. Knowledge accumulates.
@@ -261,17 +261,17 @@ Kerto.Graph.Identity.compute_id(:file, "src/auth/handler.go")
 ### Integration Layer
 
 ```
-Känni.Kerto (integration module)
+Valkka.Kerto (integration module)
 ├── Emitter       — Emit occurrences on git operations
 ├── ContextProvider — Query Kerto for file/branch context
 ├── BranchHealth  — EWMA-powered branch assessment
 └── Hooks         — PubSub listeners for automatic emission
 
 # Hooks automatically emit on repo events:
-Phoenix.PubSub.subscribe(Känni.PubSub, "repo:*")
+Phoenix.PubSub.subscribe(Valkka.PubSub, "repo:*")
 
 def handle_info({:commit_created, commit}, state) do
-  Känni.Kerto.Emitter.on_commit(state.repo_id, commit)
+  Valkka.Kerto.Emitter.on_commit(state.repo_id, commit)
   {:noreply, state}
 end
 ```
@@ -279,18 +279,18 @@ end
 ### Dependency Direction
 
 ```
-Känni (application) → Kerto (library/service)
+Valkka (application) → Kerto (library/service)
 
-Känni knows about Kerto.
-Kerto knows nothing about Känni.
+Valkka knows about Kerto.
+Kerto knows nothing about Valkka.
 Kerto is a library dependency, not a coupled system.
 ```
 
 ### Deployment Options
 
-1. **Embedded**: Kerto runs as a dependency inside Känni's BEAM node (simplest)
-2. **Daemon**: Kerto runs as a separate daemon, Känni connects via Unix socket
-3. **MCP**: Känni talks to Kerto via MCP tools (most decoupled)
+1. **Embedded**: Kerto runs as a dependency inside Valkka's BEAM node (simplest)
+2. **Daemon**: Kerto runs as a separate daemon, Valkka connects via Unix socket
+3. **MCP**: Valkka talks to Kerto via MCP tools (most decoupled)
 
 **Recommendation**: Start embedded (option 1). Kerto is designed as a library. Add daemon mode later if needed.
 
