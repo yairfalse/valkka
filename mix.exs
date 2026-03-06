@@ -95,7 +95,7 @@ defmodule Valkka.MixProject do
       {:req, "~> 0.5"},
 
       # Standalone binary packaging
-      {:burrito, github: "burrito-elixir/burrito", only: :prod}
+      {:burrito, github: "burrito-elixir/burrito", ref: "e85ec0c3e242a6150d23f4b4c0ee6cc108764f72", only: :prod}
     ]
   end
 

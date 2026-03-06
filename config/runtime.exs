@@ -11,11 +11,11 @@ end
 
 if config_env() == :prod do
   # For standalone desktop mode, generate and persist a secret key base
-  # in ~/.config/valkka/ so the user never needs to set an env var.
+  # in the platform-appropriate config dir so the user never needs to set an env var.
   secret_key_base =
     System.get_env("SECRET_KEY_BASE") ||
       (fn ->
-        config_dir = Path.join(System.user_home!(), ".config/valkka")
+        config_dir = :filename.basedir(:user_config, ~c"valkka") |> to_string()
         secret_file = Path.join(config_dir, "secret_key_base")
 
         case File.read(secret_file) do

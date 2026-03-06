@@ -22,11 +22,13 @@ fn sidecar_path() -> PathBuf {
         .expect("exe has no parent")
         .to_path_buf();
 
+    let bin_name = if cfg!(windows) { "valkka-beam.exe" } else { "valkka-beam" };
+
     // In dev, look next to the Tauri binary; in bundled app, look in binaries/
     let candidates = [
-        exe_dir.join("binaries").join("valkka-beam"),
-        exe_dir.join("valkka-beam"),
-        exe_dir.join("../Resources/binaries/valkka-beam"),
+        exe_dir.join("binaries").join(bin_name),
+        exe_dir.join(bin_name),
+        exe_dir.join("../Resources/binaries").join(bin_name),
     ];
 
     for path in &candidates {
@@ -36,7 +38,7 @@ fn sidecar_path() -> PathBuf {
     }
 
     // Fallback: assume it's on PATH
-    PathBuf::from("valkka-beam")
+    PathBuf::from(bin_name)
 }
 
 fn spawn_beam() -> Child {
