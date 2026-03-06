@@ -1,4 +1,4 @@
-# Känni × Sykli Integration
+# Valkka × Sykli Integration
 
 > See CI status without leaving your git command center.
 > Know if your changes pass before you push.
@@ -7,18 +7,18 @@
 
 ## 1. The Integration
 
-Sykli runs CI. Känni shows results and acts on them.
+Sykli runs CI. Valkka shows results and acts on them.
 
 ```
-Sykli (CI engine)                  Känni (git command center)
+Sykli (CI engine)                  Valkka (git command center)
 ──────────────                     ──────────────────────────
 Pipeline runs → ─────────────────→ Real-time task status in repo view
 Task fails → ───────────────────→ Error context in chat + Kerto learning
 Occurrence emitted → ───────────→ Structured CI data for AI review
 Context generated → ────────────→ .sykli/context.json enriches AI prompts
 
-Känni triggers → ───────────────→ "run tests" → sykli run
-Känni queries → ────────────────→ "did CI pass?" → read occurrence
+Valkka triggers → ───────────────→ "run tests" → sykli run
+Valkka queries → ────────────────→ "did CI pass?" → read occurrence
 ```
 
 ---
@@ -28,7 +28,7 @@ Känni queries → ────────────────→ "did CI p
 ### Real-Time Pipeline Status
 
 ```elixir
-defmodule Känni.Sykli.StatusMonitor do
+defmodule Valkka.Sykli.StatusMonitor do
   @moduledoc "Watches Sykli pipeline status for monitored repos."
 
   use GenServer
@@ -46,7 +46,7 @@ defmodule Känni.Sykli.StatusMonitor do
     if String.ends_with?(path, "occurrence.json") do
       status = read_current_status(state.path)
       Phoenix.PubSub.broadcast(
-        Känni.PubSub,
+        Valkka.PubSub,
         "repo:#{state.path}:ci",
         {:ci_status_updated, status}
       )
@@ -85,7 +85,7 @@ end
 ### Dashboard Display
 
 ```
-┌─ repo: kanni (main) ────────────────────┐
+┌─ repo: valkka (main) ────────────────────┐
 │ 3 uncommitted changes                   │
 │ CI: ✓ passed (12s ago)                  │
 │   test ✓  lint ✓  build ✓  clippy ✓    │
@@ -106,18 +106,18 @@ end
 
 ## 3. CI-Aware AI Context
 
-When Känni's AI reviews code or generates commit messages, it includes Sykli context.
+When Valkka's AI reviews code or generates commit messages, it includes Sykli context.
 
 ### Context Builder Integration
 
 ```elixir
-defmodule Känni.AI.ContextBuilder do
+defmodule Valkka.AI.ContextBuilder do
   def build_context(repo_id, intent) do
     base_context = build_git_context(repo_id, intent)
 
     # Enrich with Sykli CI context
-    sykli_context = Känni.Sykli.ContextProvider.get_context(repo_id)
-    kerto_context = Känni.Kerto.ContextProvider.get_context(repo_id)
+    sykli_context = Valkka.Sykli.ContextProvider.get_context(repo_id)
+    kerto_context = Valkka.Kerto.ContextProvider.get_context(repo_id)
 
     %{
       git: base_context,
@@ -127,7 +127,7 @@ defmodule Känni.AI.ContextBuilder do
   end
 end
 
-defmodule Känni.Sykli.ContextProvider do
+defmodule Valkka.Sykli.ContextProvider do
   def get_context(repo_path) do
     context_path = Path.join(repo_path, ".sykli/context.json")
 
@@ -187,14 +187,14 @@ When reviewing a PR, the AI sees:
 
 ---
 
-## 4. Run Sykli from Känni
+## 4. Run Sykli from Valkka
 
 ### Natural Language CI Commands
 
 ```
 you: run tests
 
-känni: Running Sykli pipeline...
+valkka: Running Sykli pipeline...
 
   test     ████████████████ ✓  4.2s
   lint     ████████████████ ✓  1.1s
@@ -202,7 +202,7 @@ känni: Running Sykli pipeline...
 
 you: run just the tests for auth
 
-känni: Running: sykli run --only test --filter "auth"
+valkka: Running: sykli run --only test --filter "auth"
 
   test[auth] ████████████████ ✓  1.8s
 
@@ -212,8 +212,8 @@ känni: Running: sykli run --only test --filter "auth"
 ### Implementation
 
 ```elixir
-defmodule Känni.Sykli.Runner do
-  @moduledoc "Triggers Sykli pipelines from Känni."
+defmodule Valkka.Sykli.Runner do
+  @moduledoc "Triggers Sykli pipelines from Valkka."
 
   def run(repo_path, opts \\ []) do
     args = build_args(opts)
@@ -254,19 +254,19 @@ end
 
 ## 5. CI Failure → Kerto Learning
 
-When Sykli reports a failure, Känni feeds it to Kerto.
+When Sykli reports a failure, Valkka feeds it to Kerto.
 
 ```elixir
-defmodule Känni.Sykli.KertoFeeder do
+defmodule Valkka.Sykli.KertoFeeder do
   @moduledoc "Feeds Sykli results into Kerto's knowledge graph."
 
   def on_ci_status_updated(%{status: :failed} = ci_status, repo_path) do
     # Get changed files from last commit
-    changed_files = Känni.Git.Commands.last_commit_files(repo_path)
+    changed_files = Valkka.Git.Commands.last_commit_files(repo_path)
 
     # Emit ci.run.failed occurrence to Kerto
     for task <- ci_status.tasks, task.status == :failed do
-      Känni.Kerto.Emitter.on_ci_result(
+      Valkka.Kerto.Emitter.on_ci_result(
         repo_path,
         task.name,
         :failed,
@@ -276,10 +276,10 @@ defmodule Känni.Sykli.KertoFeeder do
   end
 
   def on_ci_status_updated(%{status: :passed}, repo_path) do
-    changed_files = Känni.Git.Commands.last_commit_files(repo_path)
+    changed_files = Valkka.Git.Commands.last_commit_files(repo_path)
 
     # Emit ci.run.passed → weakens existing :breaks relationships
-    Känni.Kerto.Emitter.on_ci_result(repo_path, "pipeline", :passed, changed_files)
+    Valkka.Kerto.Emitter.on_ci_result(repo_path, "pipeline", :passed, changed_files)
   end
 end
 ```
@@ -289,13 +289,13 @@ end
 ```
 1. Developer changes auth.go
 2. Sykli runs → login_test fails
-3. Känni sees failure → emits ci.run.failed to Kerto
+3. Valkka sees failure → emits ci.run.failed to Kerto
 4. Kerto learns: auth.go :breaks login_test (weight 0.7)
 5. Next time someone touches auth.go...
-6. Känni shows: "⚠ This file has broken login_test 3 times"
+6. Valkka shows: "⚠ This file has broken login_test 3 times"
 7. Developer writes better code
 8. Sykli runs → passes
-9. Känni emits ci.run.passed → Kerto weakens the :breaks edge
+9. Valkka emits ci.run.passed → Kerto weakens the :breaks edge
 10. Over time, if auth.go stops breaking things, the warning fades
 ```
 
@@ -303,11 +303,11 @@ end
 
 ## 6. Occurrence-Based Architecture
 
-Both Sykli and Kerto use FALSE Protocol occurrences. Känni is the bridge.
+Both Sykli and Kerto use FALSE Protocol occurrences. Valkka is the bridge.
 
 ```
 ┌─────────┐     occurrence.json     ┌─────────┐
-│  Sykli  │ ──────────────────────→ │  Känni  │
+│  Sykli  │ ──────────────────────→ │  Valkka  │
 │  (CI)   │                         │ (bridge) │
 └─────────┘                         └────┬────┘
                                          │
@@ -319,25 +319,25 @@ Both Sykli and Kerto use FALSE Protocol occurrences. Känni is the bridge.
                                     └─────────┘
 ```
 
-Känni doesn't need to understand Sykli internals. It reads the occurrence (standardized FALSE Protocol format) and passes it to Kerto. The occurrence IS the API.
+Valkka doesn't need to understand Sykli internals. It reads the occurrence (standardized FALSE Protocol format) and passes it to Kerto. The occurrence IS the API.
 
 ---
 
 ## 7. Pre-Push CI Check
 
-Before pushing, Känni can run a quick CI check.
+Before pushing, Valkka can run a quick CI check.
 
 ```
 you: push
 
-känni: Before pushing, want me to run tests? Last push to this branch
+valkka: Before pushing, want me to run tests? Last push to this branch
        failed CI 2 days ago (login_test timeout).
 
        [Run tests first] [Push anyway] [Cancel]
 
 you: run tests first
 
-känni: Running Sykli...
+valkka: Running Sykli...
   test     ✓  4.2s
   lint     ✓  1.1s
 
@@ -348,10 +348,10 @@ känni: Running Sykli...
 ### Implementation
 
 ```elixir
-defmodule Känni.Git.Commands do
+defmodule Valkka.Git.Commands do
   def push_with_ci_check(repo_id, remote, branch) do
     # Check Kerto for previous CI failures on this branch
-    history = Känni.Kerto.BranchHealth.assess(repo_id, branch)
+    history = Valkka.Kerto.BranchHealth.assess(repo_id, branch)
 
     if history.known_issues != [] do
       # Suggest running CI first
@@ -370,7 +370,7 @@ end
 
 ```elixir
 # config/config.exs
-config :kanni, :sykli,
+config :valkka, :sykli,
   enabled: true,
   auto_run_on_commit: false,        # run CI after every commit?
   pre_push_check: true,             # suggest CI before push?

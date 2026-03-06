@@ -6,7 +6,7 @@ import Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :kanni, KanniWeb.Endpoint,
+config :valkka, ValkkaWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: 4420],
@@ -15,8 +15,8 @@ config :kanni, KanniWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "Ftk6wfVdx35y89k/K3hjvzE6xPi3gVqgi21vCcqH16MmhgH12hhWv6EtONEcvYpF",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:kanni, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:kanni, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:valkka, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:valkka, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -43,7 +43,7 @@ config :kanni, KanniWeb.Endpoint,
 # different ports.
 
 # Reload browser tabs when matching files change.
-config :kanni, KanniWeb.Endpoint,
+config :valkka, ValkkaWeb.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
@@ -52,13 +52,13 @@ config :kanni, KanniWeb.Endpoint,
       # Gettext translations
       ~r"priv/gettext/.*\.po$"E,
       # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/kanni_web/router\.ex$"E,
-      ~r"lib/kanni_web/(controllers|live|components)/.*\.(ex|heex)$"E
+      ~r"lib/valkka_web/router\.ex$"E,
+      ~r"lib/valkka_web/(controllers|live|components)/.*\.(ex|heex)$"E
     ]
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :kanni, dev_routes: true
+config :valkka, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
@@ -70,11 +70,11 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
-# Kanni workspace configuration
-config :kanni,
+# Valkka workspace configuration
+config :valkka,
   workspace_roots: ["~/projects"],
   scan_depth: 1,
-  plugins: [Kanni.Plugins.ClaudeDetector]
+  plugins: [Valkka.Plugins.ClaudeDetector]
 
 config :phoenix_live_view,
   # Include debug annotations and locations in rendered markup.

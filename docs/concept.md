@@ -1,10 +1,10 @@
-# Känni — Context Exchange Surface for Agentic Work
+# Valkka — Context Exchange Surface for Agentic Work
 
-> *känni* (Finnish): a turning point, a heel turn
+> *valkka* (Finnish): a turning point, a heel turn
 
 ## One-Liner
 
-Känni is where you see what your agents know, what they're doing, and what needs your decision.
+Valkka is where you see what your agents know, what they're doing, and what needs your decision.
 
 ## The Problem
 
@@ -28,14 +28,14 @@ You're blind to three things:
 
 The result: you spend more time context-switching and catching up than actually conducting the work.
 
-## What Känni Is
+## What Valkka Is
 
-Känni is the **surface** where context becomes visible and actionable.
+Valkka is the **surface** where context becomes visible and actionable.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
-│   Agents          Känni              You                    │
+│   Agents          Valkka              You                    │
 │   (workers)       (surface)          (conductor)            │
 │                                                             │
 │   Claude Code ──→ ┌─────────┐                               │
@@ -56,9 +56,9 @@ Three layers:
 | **Activity** | What's happening right now — changes, operations, agent work | Git state + file watching |
 | **Action** | What you can do — commit, push, review, steer | Git operations via Rust NIF |
 
-Git is the **medium**, not the product. Commits, branches, diffs — these are artifacts of agentic work. Känni shows them with context, not in isolation.
+Git is the **medium**, not the product. Commits, branches, diffs — these are artifacts of agentic work. Valkka shows them with context, not in isolation.
 
-## What Känni Is Not
+## What Valkka Is Not
 
 - Not a git GUI with AI bolted on
 - Not a replacement for `git` CLI (you'll still use it)
@@ -68,10 +68,10 @@ Git is the **medium**, not the product. Commits, branches, diffs — these are a
 
 ## The Relationship with Kerto
 
-Kerto is the **memory**. Känni is the **surface**.
+Kerto is the **memory**. Valkka is the **surface**.
 
 ```
-Kerto (invisible)              Känni (visible)
+Kerto (invisible)              Valkka (visible)
 ────────────────               ───────────────
 stores knowledge     ────→     renders knowledge
 accumulates patterns ────→     shows patterns forming
@@ -79,7 +79,7 @@ receives learnings   ────→     shows what was learned
 decays old context   ────→     shows what's fading
 ```
 
-Without Känni, Kerto is a database that only agents see. With Känni, the human sees the same context agents see — and can shape it.
+Without Valkka, Kerto is a database that only agents see. With Valkka, the human sees the same context agents see — and can shape it.
 
 This is the "equip, don't police" philosophy applied to the human side. You're not reviewing agent output suspiciously. You're seeing the full picture so you can conduct better.
 
@@ -89,7 +89,7 @@ This is the "equip, don't police" philosophy applied to the human side. You're n
 Day 1:    You see repo states and recent changes
 Week 1:   You see Kerto patterns forming — which files are risky, which change together
 Month 1:  You see the full context landscape — decisions, patterns, agent learnings
-Month 6:  Känni is how you think about your projects, not just how you manage git
+Month 6:  Valkka is how you think about your projects, not just how you manage git
 ```
 
 ## Design Principles
@@ -104,15 +104,15 @@ Month 6:  Känni is how you think about your projects, not just how you manage g
 ## The Ecosystem
 
 ```
-You ←──── Känni (surface) ←──── Kerto (memory)
+You ←──── Valkka (surface) ←──── Kerto (memory)
                                   ↑
                            Sykli (CI) ──→ "tests failed because..."
                            Git hooks  ──→ "these files changed together"
                            Agents     ──→ "I learned that X causes Y"
 ```
 
-Känni is how you inhabit the False Systems stack. Everything else feeds context in. Känni makes it visible so you can act on it.
+Valkka is how you inhabit the False Systems stack. Everything else feeds context in. Valkka makes it visible so you can act on it.
 
 ---
 
-**False Systems** | *känni* — see what your agents know.
+**False Systems** | *valkka* — see what your agents know.

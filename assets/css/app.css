@@ -4,7 +4,7 @@
 @import "tailwindcss" source(none);
 @source "../css";
 @source "../js";
-@source "../../lib/kanni_web";
+@source "../../lib/valkka_web";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
@@ -68,1099 +68,1006 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* ═══════════════════════════════════════════════════════════════
-   Känni — Terminal Luxe
+   Valkka — Warm Amber Design System (Linear-inspired)
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
 
 :root {
-  /* Surfaces — layered depth, blue-black base */
-  --k-void: #06070b;
-  --k-bg: #0b0d14;
-  --k-surface-0: #10131c;
-  --k-surface-1: #151924;
-  --k-surface-2: #1a1f2e;
-  --k-surface-3: #212738;
+  /* Surfaces — warm dark tones */
+  --bg:  #0e0c0a;
+  --s1:  #131210;
+  --s2:  #1a1915;
+  --b:   rgba(255,240,220,0.055);
 
-  /* Borders — subtle, cool-tinted */
-  --k-border: rgba(255, 255, 255, 0.06);
-  --k-border-strong: rgba(255, 255, 255, 0.10);
-  --k-border-accent: rgba(45, 255, 160, 0.20);
+  /* Text hierarchy */
+  --t1:  #e8e4de;
+  --t2:  #7a7268;
+  --t3:  #3d3830;
+  --t4:  #2a2520;
 
-  /* Text — warm off-whites */
-  --k-text: #d8dce8;
-  --k-text-secondary: #8b90a0;
-  --k-text-dim: #555972;
-  --k-text-ghost: #363a4a;
+  /* Interactive states */
+  --hv:  rgba(255,240,200,0.022);
+  --sel: rgba(255,240,200,0.038);
 
-  /* Accent — refined minty green */
-  --k-accent: #2dffa0;
-  --k-accent-soft: rgba(45, 255, 160, 0.12);
-  --k-accent-glow: rgba(45, 255, 160, 0.06);
-
-  /* Semantic */
-  --k-warning: #f0b060;
-  --k-warning-soft: rgba(240, 176, 96, 0.10);
-  --k-danger: #f06070;
-  --k-danger-soft: rgba(240, 96, 112, 0.10);
-  --k-info: #60a0f0;
-  --k-info-soft: rgba(96, 160, 240, 0.10);
-  --k-purple: #a78bfa;
-  --k-purple-soft: rgba(167, 139, 250, 0.10);
-
-  /* Branch lane palette */
-  --kanni-lane-0: #2dffa0;
-  --kanni-lane-1: #f06070;
-  --kanni-lane-2: #4ecdc4;
-  --kanni-lane-3: #f0b060;
-  --kanni-lane-4: #a78bfa;
-  --kanni-lane-5: #f472b6;
-  --kanni-lane-6: #60a0f0;
-  --kanni-lane-7: #fb923c;
+  /* Accent palette */
+  --green: #c8a96e;
+  --blue:  #4a5898;
+  --slate: #5c5245;
+  --red:   #bf5c5c;
 
   /* Typography */
-  --k-font: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
-  --k-leading: 1.6;
+  --font: 'Inter', system-ui, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+  --r: 36px;
 
-  /* Spacing scale */
-  --k-gap-xs: 0.25rem;
-  --k-gap-sm: 0.5rem;
-  --k-gap-md: 0.75rem;
-  --k-gap-lg: 1rem;
-  --k-gap-xl: 1.5rem;
-
-  /* Radii */
-  --k-radius-sm: 4px;
-  --k-radius-md: 6px;
-  --k-radius-lg: 8px;
-
-  /* Transitions */
-  --k-ease: cubic-bezier(0.22, 0.68, 0, 1);
-  --k-duration: 180ms;
+  /* Branch lane palette (graph) */
+  --valkka-lane-0: #c8a96e;
+  --valkka-lane-1: #bf5c5c;
+  --valkka-lane-2: #4ecdc4;
+  --valkka-lane-3: #a07840;
+  --valkka-lane-4: #a78bfa;
+  --valkka-lane-5: #f472b6;
+  --valkka-lane-6: #4a5898;
+  --valkka-lane-7: #fb923c;
 }
 
 /* ── Reset & Base ────────────────────────────────────────────── */
 
 html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
-  height: 100%;
+  background: var(--bg);
+  color: var(--t1);
+  font-family: var(--font);
+  font-size: 12.5px;
+  line-height: 1;
   overflow: hidden;
-  background: var(--k-void);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv02","cv03","cv04","cv11","ss01";
+  letter-spacing: -0.012em;
 }
 
 ::selection {
-  background: var(--k-accent-soft);
-  color: var(--k-accent);
+  background: rgba(200,170,100,0.15);
+  color: var(--green);
 }
 
-/* Subtle scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--k-border-strong);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--k-text-dim);
-}
+/* Scrollbars */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--s2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--t3); }
+* { scrollbar-width: thin; scrollbar-color: var(--s2) transparent; }
 
 /* ── Shell ───────────────────────────────────────────────────── */
 
-.kanni-shell {
-  background: var(--k-bg);
-  color: var(--k-text);
-  font-family: var(--k-font);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: var(--k-leading);
+.valkka-shell {
+  display: grid;
+  grid-template-columns: 212px 1fr 260px;
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* ── Header ──────────────────────────────────────────────────── */
-
-.kanni-header {
-  padding: 0.625rem var(--k-gap-lg);
-  border-bottom: 1px solid var(--k-border);
-  display: flex;
-  align-items: baseline;
-  gap: var(--k-gap-md);
-  background: linear-gradient(180deg, var(--k-surface-0) 0%, var(--k-bg) 100%);
-  position: relative;
-}
-
-/* Subtle accent glow under header */
-.kanni-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--k-accent) 30%,
-    var(--k-accent) 70%,
-    transparent 100%
-  );
-  opacity: 0.15;
-}
-
-.kanni-logo {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--k-accent);
-  letter-spacing: -0.02em;
-  text-shadow: 0 0 20px var(--k-accent-soft);
-}
-
-.kanni-tagline {
-  font-size: 11px;
-  font-weight: 300;
-  color: var(--k-text-dim);
-  letter-spacing: 0.04em;
-}
-
-/* ── Panel Grid ──────────────────────────────────────────────── */
-
-.kanni-panels {
-  display: grid;
-  grid-template-columns: 232px 1fr 272px;
   overflow: hidden;
 }
 
-/* ── Panel shared ────────────────────────────────────────────── */
+/* ── Sidebar ─────────────────────────────────────────────────── */
 
-.kanni-panel-header {
-  padding: var(--k-gap-sm) var(--k-gap-md);
-  border-bottom: 1px solid var(--k-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-  background: var(--k-surface-0);
-}
-
-.kanni-panel-title {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--k-text-dim);
-}
-
-.kanni-panel-count {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--k-text-dim);
-  background: var(--k-surface-2);
-  padding: 1px 6px;
-  border-radius: var(--k-radius-sm);
-  min-width: 16px;
-  text-align: center;
-}
-
-/* ── Repos Panel (left) ──────────────────────────────────────── */
-
-.kanni-repos-panel {
-  border-right: 1px solid var(--k-border);
+.valkka-sidebar {
+  background: var(--s1);
+  border-right: 1px solid var(--b);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--k-surface-0);
 }
 
-.kanni-repo-list {
-  overflow-y: auto;
-  flex: 1;
-  padding: var(--k-gap-xs) 0;
-}
-
-.kanni-repo-item {
-  padding: 6px var(--k-gap-md);
+/* Workspace header */
+.valkka-ws {
+  height: 52px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: background var(--k-duration) var(--k-ease);
-  position: relative;
-  margin: 1px 4px;
-  border-radius: var(--k-radius-sm);
-}
-
-.kanni-repo-item:hover {
-  background: var(--k-surface-2);
-}
-
-.kanni-repo-item.selected {
-  background: var(--k-surface-2);
-}
-
-/* Accent bar for selected repo */
-.kanni-repo-item.selected::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 4px;
-  bottom: 4px;
-  width: 2px;
-  background: var(--k-accent);
-  border-radius: 1px;
-  box-shadow: 0 0 8px var(--k-accent-soft);
-}
-
-.kanni-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  gap: 9px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--b);
   flex-shrink: 0;
-  transition: box-shadow var(--k-duration) var(--k-ease);
 }
 
-.kanni-status-dot.clean {
-  background: var(--k-accent);
-  box-shadow: 0 0 4px var(--k-accent-soft);
-}
-
-.kanni-status-dot.dirty {
-  background: var(--k-warning);
-  box-shadow: 0 0 4px var(--k-warning-soft);
-  animation: pulse-dot 2.5s ease-in-out infinite;
-}
-
-.kanni-status-dot.error {
-  background: var(--k-danger);
-  box-shadow: 0 0 4px var(--k-danger-soft);
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.kanni-repo-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.kanni-repo-name {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--k-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.kanni-repo-branch {
-  font-size: 10px;
-  font-weight: 300;
-  color: var(--k-text-dim);
-  letter-spacing: 0.02em;
-}
-
-.kanni-repo-meta {
-  display: flex;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 500;
-  flex-shrink: 0;
-  align-items: center;
-}
-
-.kanni-dirty-count {
-  color: var(--k-warning);
-  background: var(--k-warning-soft);
-  padding: 0 4px;
-  border-radius: 3px;
-  font-size: 10px;
-}
-
-.kanni-ahead {
-  color: var(--k-accent);
-  font-size: 10px;
-}
-
-.kanni-behind {
-  color: var(--k-danger);
-  font-size: 10px;
-}
-
-/* ── Focus Panel (center) ────────────────────────────────────── */
-
-.kanni-focus-panel {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--k-bg);
-}
-
-.kanni-focus-content {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  height: 100%;
-}
-
-.kanni-tab-bar {
-  display: flex;
-  border-bottom: 1px solid var(--k-border);
-  flex-shrink: 0;
-  background: var(--k-surface-0);
-  gap: 2px;
-  padding: 0 var(--k-gap-sm);
-}
-
-.kanni-tab {
-  padding: 8px 14px 7px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--k-text-dim);
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  font-family: inherit;
-  transition: color var(--k-duration) var(--k-ease),
-              border-color var(--k-duration) var(--k-ease);
-  letter-spacing: 0.02em;
-}
-
-.kanni-tab:hover {
-  color: var(--k-text-secondary);
-}
-
-.kanni-tab.active {
-  color: var(--k-accent);
-  border-bottom-color: var(--k-accent);
-}
-
-.kanni-tab-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--k-gap-md);
-}
-
-.kanni-focus-empty {
+.valkka-ws-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #6b4f2a, #a07840);
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,.88);
+  flex-shrink: 0;
 }
 
-.kanni-empty-message,
-.kanni-empty,
-.kanni-placeholder {
-  color: var(--k-text-dim);
-  font-size: 12px;
-  padding: var(--k-gap-lg);
-  text-align: center;
-  font-weight: 300;
-  letter-spacing: 0.02em;
+.valkka-ws-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t1);
+  flex: 1;
 }
 
-/* ── Context Panel (right) ───────────────────────────────────── */
+.valkka-ws-live {
+  font-size: 11px;
+  color: rgba(200,170,100,.45);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 
-.kanni-context-panel {
-  border-left: 1px solid var(--k-border);
+/* Pulse dot animation */
+.valkka-pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  opacity: .75;
+  animation: valkka-pd 2.8s ease-in-out infinite;
+}
+
+@keyframes valkka-pd { 0%,100%{opacity:.7} 50%{opacity:.18} }
+
+/* Nav items */
+.valkka-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--r);
+  padding: 0 12px;
+  color: var(--t3);
+  cursor: pointer;
+  transition: color .1s, background .08s;
+  position: relative;
+}
+
+.valkka-nav:hover {
+  color: var(--t2);
+  background: var(--hv);
+}
+
+.valkka-nav.active {
+  color: var(--t1);
+  background: var(--sel);
+}
+
+.valkka-nav.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 8px; bottom: 8px;
+  width: 2px;
+  background: rgba(200,170,100,.25);
+  border-radius: 0 2px 2px 0;
+}
+
+.valkka-nav-icon {
+  width: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .5;
+}
+
+.valkka-nav.active .valkka-nav-icon { opacity: .75; }
+
+.valkka-nav-label {
+  font-size: 12.5px;
+  flex: 1;
+}
+
+.valkka-nav-count {
+  font-size: 11px;
+  color: var(--t3);
+}
+
+.valkka-nav-count.accent {
+  color: rgba(200,170,100,.42);
+}
+
+/* Sidebar separators and labels */
+.valkka-sb-sep { height: 1px; background: var(--b); }
+.valkka-sb-label {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--t4);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.valkka-sb-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--b);
+}
+
+/* Status dots */
+.valkka-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.valkka-dot.agent {
+  background: var(--green);
+  opacity: .8;
+  animation: valkka-pd 2.8s ease-in-out infinite;
+}
+
+.valkka-dot.dirty {
+  background: var(--slate);
+  opacity: .6;
+}
+
+.valkka-dot.clean {
+  background: var(--t4);
+}
+
+.valkka-dot.error {
+  background: var(--red);
+  opacity: .7;
+}
+
+/* ── Center ──────────────────────────────────────────────────── */
+
+.valkka-center {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--k-surface-0);
 }
 
-.kanni-context-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--k-gap-md);
+/* Topbar */
+.valkka-topbar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--b);
+  flex-shrink: 0;
 }
 
-.kanni-context-rendered {
-  font-size: 12px;
-}
+.valkka-bc { font-size: 12.5px; color: var(--t3); }
+.valkka-bc-sep { color: var(--t4); }
+.valkka-bc-current { font-size: 12.5px; font-weight: 500; color: var(--t1); }
 
-.kanni-context-text {
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 300;
-  line-height: 1.7;
-  color: var(--k-text);
-  margin: 0;
-}
-
-.kanni-kerto-status {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--k-text-dim);
-  letter-spacing: 0.02em;
-}
-
-.kanni-no-plugins {
-  color: var(--k-text-ghost);
-  font-style: italic;
-}
-
-.kanni-file-context {
-  margin-bottom: var(--k-gap-md);
-  padding-bottom: var(--k-gap-md);
-  border-bottom: 1px solid var(--k-border);
-}
-
-.kanni-context-section-header {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--k-accent);
-  margin-bottom: var(--k-gap-xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Pills */
+.valkka-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 100px;
+  font-size: 11px;
+  border: 1px solid;
   white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.valkka-pill.branch { color: var(--t3); border-color: var(--b); }
+.valkka-pill.ahead  { color: rgba(90,104,238,.85); border-color: rgba(90,104,238,.2); background: rgba(90,104,238,.06); }
+.valkka-pill.agent  { color: rgba(200,170,100,.8); border-color: rgba(200,170,100,.18); background: rgba(200,170,100,.05); }
+.valkka-pill.changes { color: rgba(78,92,114,.9); border-color: rgba(78,92,114,.22); background: rgba(78,92,114,.06); }
+
+.valkka-spacer { flex: 1; }
+
+/* Buttons */
+.valkka-btn {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid;
+  white-space: nowrap;
+  transition: all .1s;
+  letter-spacing: -0.01em;
+}
+
+.valkka-btn.default {
+  background: var(--s2);
+  color: var(--t2);
+  border-color: var(--b);
+}
+.valkka-btn.default:hover { color: var(--t1); }
+
+.valkka-btn.primary {
+  background: var(--blue);
+  color: rgba(255,255,255,.9);
+  border-color: transparent;
+}
+.valkka-btn.primary:hover { background: #6878f0; }
+
+.valkka-btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--t3);
+  padding: 0 7px;
+}
+.valkka-btn.ghost:hover { color: var(--t2); background: var(--hv); }
+
+.valkka-btn.danger {
+  background: transparent;
+  border-color: transparent;
+  color: rgba(191,92,92,.7);
+  padding: 0 7px;
+}
+.valkka-btn.danger:hover { color: rgba(191,92,92,.9); }
+
+.valkka-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Tabs */
+.valkka-tab-bar {
+  height: 36px;
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--b);
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.valkka-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-family: var(--font);
+  color: var(--t3);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  margin-bottom: -1px;
+  margin-right: 20px;
+  transition: color .1s;
+  padding: 0;
+}
+
+.valkka-tab:hover { color: var(--t2); }
+
+.valkka-tab.active {
+  color: var(--t1);
+  border-bottom-color: rgba(255,255,255,.26);
+}
+
+.valkka-tab-count {
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border-radius: 100px;
+  background: rgba(78,92,114,.08);
+  color: rgba(78,92,114,.5);
+  border: 1px solid rgba(78,92,114,.12);
+}
+
+/* Tab panels */
+.valkka-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.valkka-panel.active { display: flex; }
+.valkka-scroll { flex: 1; overflow-y: auto; }
+
+/* ── Graph View ──────────────────────────────────────────────── */
+
+.valkka-graph-row {
+  display: flex;
+  align-items: center;
+  height: var(--r);
+  padding: 0 16px;
+  cursor: pointer;
+  transition: background .07s;
+}
+
+.valkka-graph-row:hover { background: var(--hv); }
+.valkka-graph-row.selected { background: var(--sel); }
+
+/* Graph info shown above canvas */
+.valkka-graph-info {
+  color: var(--t3);
+  font-size: 11px;
+  padding: 6px 16px;
 }
 
 /* ── Changes View ────────────────────────────────────────────── */
 
-.kanni-changes {
+/* Agent bar */
+.valkka-agent-bar {
+  height: 30px;
   display: flex;
-  flex-direction: column;
-  gap: var(--k-gap-sm);
-}
-
-.kanni-file-lists {
-  display: flex;
-  flex-direction: column;
-}
-
-.kanni-file-section {
-  margin-bottom: var(--k-gap-xs);
-}
-
-.kanni-section-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--k-border);
-  margin-bottom: 2px;
+  gap: 8px;
+  padding: 0 16px;
+  background: rgba(180,150,80,.025);
+  border-bottom: 1px solid rgba(180,150,80,.045);
+  flex-shrink: 0;
 }
 
-.kanni-section-title {
-  font-size: 10px;
-  font-weight: 600;
+.valkka-agent-bar-name { font-size: 12px; color: rgba(190,165,110,.52); }
+.valkka-agent-bar-time { font-size: 11.5px; color: rgba(190,165,110,.28); margin-left: auto; }
+
+/* Section headers */
+.valkka-section {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(13,13,16,.97);
+  backdrop-filter: blur(4px);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid rgba(255,255,255,.025);
+}
+
+.valkka-section-label {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--t4);
+  letter-spacing: .08em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--k-text-dim);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.kanni-section-count {
+.valkka-section-count {
   font-size: 10px;
-  color: var(--k-text-dim);
+  padding: 0 4px;
+  border-radius: 100px;
+  background: rgba(78,92,114,.07);
+  color: rgba(78,92,114,.42);
+  border: 1px solid rgba(78,92,114,.1);
 }
 
-.kanni-section-actions {
+/* File rows */
+.valkka-file-row {
+  display: flex;
+  align-items: center;
+  height: var(--r);
+  padding: 0 16px;
+  cursor: pointer;
+  transition: background .07s;
+}
+
+.valkka-file-row:hover { background: var(--hv); }
+.valkka-file-row.selected { background: var(--sel); }
+
+.valkka-file-status {
+  font-size: 10.5px;
+  font-weight: 700;
+  width: 11px;
+  text-align: center;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+
+.valkka-file-status.modified { color: rgba(78,92,114,.8); }
+.valkka-file-status.added, .valkka-file-status.new { color: rgba(61,214,140,.75); }
+.valkka-file-status.deleted { color: rgba(191,92,92,.75); }
+.valkka-file-status.renamed { color: rgba(90,104,238,.75); }
+
+.valkka-file-name {
+  font-size: 12.5px;
+  color: var(--t1);
+  flex: 1;
+  padding: 0 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.valkka-file-name .dir { color: var(--t3); }
+
+.valkka-file-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 100px;
+  background: rgba(80,100,90,.06);
+  color: rgba(140,160,150,.4);
+  border: 1px solid rgba(100,130,115,.07);
+  flex-shrink: 0;
+}
+
+.valkka-file-action {
+  opacity: 0;
+  margin-left: 4px;
+  transition: opacity .1s;
+}
+
+.valkka-file-row:hover .valkka-file-action { opacity: 1; }
+
+/* Commit bar */
+.valkka-commit-bar {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border-top: 1px solid var(--b);
+  flex-shrink: 0;
+}
+
+.valkka-commit-input {
+  flex: 1;
+  height: 28px;
+  background: var(--s2);
+  border: 1px solid var(--b);
+  border-radius: 5px;
+  padding: 0 10px;
+  font-family: var(--font);
+  font-size: 12.5px;
+  color: var(--t1);
+  outline: none;
+  transition: border-color .15s;
+}
+
+.valkka-commit-input::placeholder { color: var(--t4); }
+.valkka-commit-input:focus { border-color: rgba(90,104,238,.3); }
+
+/* ── Diff View ───────────────────────────────────────────────── */
+
+.valkka-diff {
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.valkka-diff-header {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--b);
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--t1);
+}
+
+.valkka-diff-add  { font-size: 12px; color: rgba(61,214,140,.58); }
+.valkka-diff-del  { font-size: 12px; color: rgba(191,92,92,.58); }
+.valkka-diff-tag  { font-size: 11px; color: var(--t3); margin-left: auto; }
+
+.valkka-hunk { border-bottom: 1px solid var(--b); }
+.valkka-hunk:last-child { border-bottom: none; }
+
+.valkka-hunk-header {
+  padding: 3px 16px;
+  background: rgba(90,104,238,.03);
+  font-size: 11px;
+  font-family: var(--mono);
+  color: rgba(90,104,238,.42);
+  font-style: italic;
+  border-bottom: 1px solid var(--b);
+}
+
+.valkka-hunk-lines {
+  font-size: 11px;
+  font-family: var(--mono);
+  line-height: 18px;
+}
+
+.valkka-diff-line {
+  display: flex;
+  min-height: 18px;
+  line-height: 18px;
+}
+
+.valkka-diff-line:hover { background: var(--hv); }
+
+.valkka-lineno {
+  width: 36px;
+  color: var(--t4);
+  text-align: right;
+  padding-right: 10px;
+  user-select: none;
+  flex-shrink: 0;
+  font-size: 10.5px;
+}
+
+.valkka-lineno + .valkka-lineno {
+  border-right: none;
+  padding-left: 4px;
+}
+
+.valkka-line-origin {
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--t4);
+}
+
+.valkka-line-content {
+  flex: 1;
+  padding: 0 14px 0 2px;
+  color: var(--t2);
+  white-space: pre;
+}
+
+.valkka-diff-line.addition { background: rgba(61,214,140,.04); }
+.valkka-diff-line.addition .valkka-line-origin { color: rgba(61,214,140,.58); }
+.valkka-diff-line.addition .valkka-line-content { color: rgba(61,214,140,.72); }
+
+.valkka-diff-line.deletion { background: rgba(191,92,92,.036); }
+.valkka-diff-line.deletion .valkka-line-origin { color: rgba(191,92,92,.58); }
+.valkka-diff-line.deletion .valkka-line-content { color: rgba(191,92,92,.68); }
+
+.valkka-diff-area {
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ── Right Panel ─────────────────────────────────────────────── */
+
+.valkka-right-panel {
+  background: var(--s1);
+  border-left: 1px solid var(--b);
+  display: flex;
+  flex-direction: column;
+}
+
+.valkka-rp-tabs {
+  height: 36px;
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--b);
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+
+.valkka-rp-tab {
+  display: flex;
+  align-items: center;
+  font-size: 12.5px;
+  font-family: var(--font);
+  color: var(--t3);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  margin-bottom: -1px;
+  margin-right: 16px;
+  transition: color .1s;
+  padding: 0;
+}
+
+.valkka-rp-tab:hover { color: var(--t2); }
+.valkka-rp-tab.active { color: var(--t1); border-bottom-color: rgba(255,255,255,.24); }
+
+.valkka-rp-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Activity Stream (right panel) ───────────────────────────── */
+
+.valkka-activity-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 14px 7px;
+  cursor: pointer;
+  transition: background .07s;
+  border-left: 2px solid transparent;
+}
+
+.valkka-activity-entry:hover { background: var(--hv); }
+
+.valkka-activity-entry.type-agent_started,
+.valkka-activity-entry.type-agent_stopped { border-left-color: rgba(200,170,100,.22); }
+.valkka-activity-entry.type-commit { border-left-color: rgba(90,104,238,.32); }
+.valkka-activity-entry.type-files_changed { border-left-color: rgba(78,92,114,.25); }
+.valkka-activity-entry.type-pushed { border-left-color: rgba(90,104,238,.32); }
+
+.valkka-activity-entry-header {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.kanni-file-entry {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 3px 6px;
-  cursor: pointer;
-  font-size: 12px;
-  border-radius: var(--k-radius-sm);
-  transition: background var(--k-duration) var(--k-ease);
-}
-
-.kanni-file-entry:hover {
-  background: var(--k-surface-1);
-}
-
-.kanni-file-entry.selected {
-  background: var(--k-accent-soft);
-  box-shadow: inset 0 0 0 1px var(--k-border-accent);
-}
-
-.kanni-file-status {
-  font-size: 11px;
-  font-weight: 600;
-  width: 14px;
+.valkka-activity-icon {
+  font-size: 9px;
+  width: 11px;
   text-align: center;
   flex-shrink: 0;
+  color: var(--t3);
 }
 
-.kanni-file-status.added,
-.kanni-file-status.new { color: var(--k-accent); }
-.kanni-file-status.modified { color: var(--k-warning); }
-.kanni-file-status.deleted { color: var(--k-danger); }
-.kanni-file-status.renamed { color: var(--k-purple); }
+.valkka-activity-entry.type-agent_started .valkka-activity-icon,
+.valkka-activity-entry.type-agent_stopped .valkka-activity-icon { color: rgba(190,160,100,.52); }
+.valkka-activity-entry.type-files_changed .valkka-activity-icon { color: rgba(78,92,114,.52); }
+.valkka-activity-entry.type-commit .valkka-activity-icon,
+.valkka-activity-entry.type-pushed .valkka-activity-icon { color: rgba(90,104,238,.62); }
 
-.kanni-file-path {
+.valkka-activity-repo {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: rgba(255,255,255,.032);
+  color: var(--t3);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity .1s;
+}
+
+.valkka-activity-repo:hover { opacity: .7; }
+
+.valkka-activity-summary {
+  font-size: 12px;
+  color: var(--t2);
+  flex: 1;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 400;
 }
 
-.kanni-file-action {
-  opacity: 0;
-  margin-left: auto;
-  transition: opacity var(--k-duration) var(--k-ease);
-}
-
-.kanni-file-entry:hover .kanni-file-action {
-  opacity: 1;
-}
-
-/* ── Action Buttons ──────────────────────────────────────────── */
-
-.kanni-action-btn {
-  font-size: 10px;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: var(--k-radius-sm);
-  border: 1px solid var(--k-border-strong);
-  background: var(--k-surface-1);
-  color: var(--k-text-secondary);
-  cursor: pointer;
-  font-family: inherit;
-  transition: all var(--k-duration) var(--k-ease);
-  letter-spacing: 0.02em;
-}
-
-.kanni-action-btn:hover {
-  border-color: var(--k-border-accent);
-  color: var(--k-accent);
-  background: var(--k-accent-glow);
-}
-
-/* ── Diff Viewer ─────────────────────────────────────────────── */
-
-.kanni-diff {
-  margin-top: var(--k-gap-sm);
-  border: 1px solid var(--k-border-strong);
-  border-radius: var(--k-radius-md);
-  overflow: hidden;
-  background: var(--k-surface-0);
-}
-
-.kanni-diff-header {
-  padding: 6px 10px;
-  background: var(--k-surface-1);
-  border-bottom: 1px solid var(--k-border);
+.valkka-activity-time {
   font-size: 11px;
-  font-weight: 500;
-  color: var(--k-text-secondary);
-  letter-spacing: 0.01em;
-}
-
-.kanni-hunk {
-  border-bottom: 1px solid var(--k-border);
-}
-
-.kanni-hunk:last-child {
-  border-bottom: none;
-}
-
-.kanni-hunk-header {
-  padding: 3px 10px;
-  background: var(--k-accent-glow);
-  font-size: 11px;
-  font-weight: 400;
-  color: var(--k-text-dim);
-  border-bottom: 1px solid var(--k-border);
-}
-
-.kanni-hunk-lines {
-  font-size: 12px;
-}
-
-.kanni-diff-line {
-  display: flex;
-  line-height: 1.55;
-  white-space: pre;
-  transition: background 80ms ease;
-}
-
-.kanni-diff-line:hover {
-  background: var(--k-surface-2);
-}
-
-.kanni-diff-line.addition:hover,
-.kanni-diff-line.deletion:hover {
-  background: var(--k-surface-2);
-}
-
-.kanni-diff-line.addition {
-  background: rgba(45, 255, 160, 0.05);
-}
-
-.kanni-diff-line.deletion {
-  background: rgba(240, 96, 112, 0.05);
-}
-
-.kanni-diff-line.context {
-  background: transparent;
-}
-
-.kanni-lineno {
-  width: 42px;
-  text-align: right;
-  padding-right: 8px;
-  color: var(--k-text-ghost);
-  font-size: 11px;
+  color: var(--t4);
   flex-shrink: 0;
-  user-select: none;
-  border-right: 1px solid var(--k-border);
-}
-
-.kanni-lineno + .kanni-lineno {
-  border-right: none;
-  padding-left: 4px;
-}
-
-.kanni-line-origin {
-  width: 18px;
-  text-align: center;
-  flex-shrink: 0;
-  color: var(--k-text-ghost);
-  font-weight: 500;
-}
-
-.kanni-diff-line.addition .kanni-line-origin {
-  color: var(--k-accent);
-}
-
-.kanni-diff-line.deletion .kanni-line-origin {
-  color: var(--k-danger);
-}
-
-.kanni-line-content {
-  flex: 1;
-  padding-right: 10px;
-  padding-left: 2px;
-}
-
-.kanni-diff-area {
-  overflow-y: auto;
-  max-height: 55vh;
-}
-
-/* ── Activity Stream ─────────────────────────────────────────── */
-
-.kanni-activity {
-  font-size: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.kanni-activity-entry {
-  border-radius: var(--k-radius-sm);
-  transition: background var(--k-duration) var(--k-ease);
-}
-
-.kanni-activity-entry:hover {
-  background: var(--k-surface-1);
-}
-
-.kanni-activity-entry-header {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 5px 8px;
-}
-
-.kanni-activity-icon {
-  font-size: 10px;
-  flex-shrink: 0;
-  width: 14px;
-  text-align: center;
-  color: var(--k-text-dim);
-}
-
-/* Type-specific icon colors */
-.kanni-activity-entry.type-files_changed .kanni-activity-icon {
-  color: var(--k-warning);
-}
-
-.kanni-activity-entry.type-commit .kanni-activity-icon {
-  color: var(--k-accent);
-}
-
-.kanni-activity-entry.type-branch_switched .kanni-activity-icon {
-  color: var(--k-purple);
-}
-
-.kanni-activity-entry.type-repo_status .kanni-activity-icon {
-  color: var(--k-info);
-}
-
-.kanni-activity-entry.type-pushed .kanni-activity-icon {
-  color: var(--k-accent);
-}
-
-.kanni-activity-time {
-  color: var(--k-text-ghost);
-  font-size: 10px;
-  font-weight: 400;
-  flex-shrink: 0;
-  width: 52px;
-  letter-spacing: 0.03em;
   font-variant-numeric: tabular-nums;
 }
 
-.kanni-activity-repo {
-  color: var(--k-accent);
-  font-weight: 500;
-  flex-shrink: 0;
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.valkka-activity-detail {
   font-size: 11px;
-  cursor: pointer;
-  transition: opacity var(--k-duration) var(--k-ease);
+  color: var(--t3);
+  padding-left: 17px;
 }
 
-.kanni-activity-repo:hover {
-  opacity: 0.8;
-}
-
-.kanni-activity-summary {
-  color: var(--k-text-secondary);
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 300;
-}
-
-.kanni-activity-toggle {
+.valkka-activity-toggle {
   background: none;
   border: none;
-  color: var(--k-text-dim);
+  color: var(--t3);
   cursor: pointer;
   font-family: inherit;
   font-size: 11px;
   padding: 0 4px;
   flex-shrink: 0;
-  transition: color var(--k-duration) var(--k-ease);
+  transition: color .1s;
 }
 
-.kanni-activity-toggle:hover {
-  color: var(--k-text);
-}
+.valkka-activity-toggle:hover { color: var(--t1); }
 
-/* Expandable file list */
-.kanni-activity-files {
-  padding: 2px 8px 6px 30px;
+.valkka-activity-files {
+  padding: 2px 8px 6px 17px;
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.kanni-activity-file {
+.valkka-activity-file {
   font-size: 11px;
   font-weight: 300;
-  color: var(--k-text-secondary);
+  color: var(--t2);
   padding: 2px 6px;
   border-radius: 3px;
   cursor: pointer;
-  transition: background var(--k-duration) var(--k-ease),
-              color var(--k-duration) var(--k-ease);
+  transition: background .1s, color .1s;
 }
 
-.kanni-activity-file:hover {
-  background: var(--k-accent-soft);
-  color: var(--k-accent);
+.valkka-activity-file:hover {
+  background: rgba(200,170,100,.08);
+  color: var(--green);
 }
 
-/* Detail line (commit info, branch transition) */
-.kanni-activity-detail {
-  font-size: 10px;
-  font-weight: 300;
-  color: var(--k-text-dim);
-  padding: 0 8px 4px 30px;
-  letter-spacing: 0.02em;
+.valkka-activity-sep { height: 1px; background: var(--b); margin: 1px 0; }
+
+/* Agent cards (right panel Agents tab) */
+.valkka-agent-card {
+  margin: 3px 9px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--b);
+  background: var(--s2);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-/* ── Commit Form ─────────────────────────────────────────────── */
-
-.kanni-commit-area {
-  margin-top: var(--k-gap-sm);
-  padding-top: var(--k-gap-sm);
-  border-top: 1px solid var(--k-border);
+.valkka-agent-card.live {
+  border-color: rgba(200,170,100,.1);
+  background: rgba(200,170,100,.022);
 }
 
-.kanni-commit-form form {
+.valkka-agent-card-top { display: flex; align-items: center; gap: 7px; }
+.valkka-agent-card-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.valkka-agent-card-dot.live { background: var(--green); opacity: .78; animation: valkka-pd 2.8s ease-in-out infinite; }
+.valkka-agent-card-dot.off { background: var(--t4); }
+.valkka-agent-card-name { font-size: 12px; font-weight: 500; color: var(--t1); flex: 1; }
+.valkka-agent-card-pid { font-size: 11px; color: var(--t3); }
+
+/* ── Overview View ───────────────────────────────────────────── */
+
+.valkka-overview { flex: 1; overflow-y: auto; padding: 0; }
+
+.valkka-ov-heading {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--t3);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--b);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(13,13,16,.97);
+  backdrop-filter: blur(6px);
+}
+
+.valkka-ov-sep {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--t4);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,.025);
+}
+
+.valkka-ov-row {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: background .07s;
+  border-bottom: 1px solid rgba(255,255,255,.028);
+  position: relative;
+}
+
+.valkka-ov-row:hover { background: var(--hv); }
+
+.valkka-ov-row.agent-active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--green);
+  opacity: .5;
+  box-shadow: 0 0 12px 2px rgba(200,170,100,.25);
+}
+
+.valkka-ov-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-right: 10px; }
+.valkka-ov-dot.agent { background: var(--green); opacity: .72; animation: valkka-pd 2.8s ease-in-out infinite; }
+.valkka-ov-dot.dirty { background: var(--slate); opacity: .55; }
+.valkka-ov-dot.clean { background: var(--t4); }
+
+.valkka-ov-name { font-size: 13px; font-weight: 400; color: var(--t1); width: 80px; flex-shrink: 0; }
+.valkka-ov-branch { font-size: 12px; color: var(--t3); flex: 1; padding-left: 4px; }
+.valkka-ov-status { font-size: 12px; color: var(--t2); white-space: nowrap; }
+.valkka-ov-status.agent-s { color: rgba(200,170,100,.6); }
+.valkka-ov-status.dirty-s { color: rgba(78,92,114,.65); }
+.valkka-ov-when { font-size: 11px; color: var(--t4); margin-left: 16px; width: 58px; text-align: right; flex-shrink: 0; }
+
+@keyframes valkka-shimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.valkka-ov-row.agent-active .valkka-ov-name {
+  background: linear-gradient(90deg, #e0e0e8 0%, rgba(200,170,100,.9) 40%, #b4c4ff 80%, #e0e0e8 100%);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: valkka-shimmer 5s ease infinite;
+}
+
+/* ── Commit Form (in changes panel) ──────────────────────────── */
+
+.valkka-commit-form form {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.kanni-commit-input {
-  background: var(--k-surface-1);
-  border: 1px solid var(--k-border-strong);
-  color: var(--k-text);
-  border-radius: var(--k-radius-md);
+.valkka-commit-form textarea.valkka-commit-input {
+  background: var(--s2);
+  border: 1px solid var(--b);
+  color: var(--t1);
+  border-radius: 5px;
   padding: 8px 10px;
-  font-family: inherit;
-  font-size: 12px;
+  font-family: var(--font);
+  font-size: 12.5px;
   font-weight: 400;
   outline: none;
   resize: vertical;
   min-height: 2.5rem;
-  transition: border-color var(--k-duration) var(--k-ease),
-              box-shadow var(--k-duration) var(--k-ease);
   line-height: 1.5;
+  transition: border-color .15s;
 }
 
-.kanni-commit-input::placeholder {
-  color: var(--k-text-ghost);
-  font-weight: 300;
-}
+.valkka-commit-form textarea.valkka-commit-input::placeholder { color: var(--t4); }
+.valkka-commit-form textarea.valkka-commit-input:focus { border-color: rgba(90,104,238,.3); }
 
-.kanni-commit-input:focus {
-  border-color: var(--k-accent);
-  box-shadow: 0 0 0 2px var(--k-accent-soft),
-              0 0 16px var(--k-accent-glow);
-}
-
-.kanni-commit-actions {
+.valkka-commit-actions {
   display: flex;
   gap: 6px;
 }
 
-.kanni-btn {
-  background: var(--k-accent);
-  color: var(--k-void);
-  font-weight: 600;
-  font-size: 12px;
-  padding: 6px 16px;
-  border-radius: var(--k-radius-md);
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  letter-spacing: 0.01em;
-  transition: opacity var(--k-duration) var(--k-ease),
-              transform 80ms ease,
-              box-shadow var(--k-duration) var(--k-ease);
-}
-
-.kanni-btn:hover {
-  opacity: 0.9;
-  box-shadow: 0 0 16px var(--k-accent-soft);
-}
-
-.kanni-btn:active {
-  transform: scale(0.98);
-}
-
-.kanni-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.kanni-btn-sm {
-  padding: 4px 12px;
-  font-size: 11px;
-}
-
-.kanni-btn-secondary {
-  background: var(--k-surface-2);
-  color: var(--k-text-secondary);
-  border: 1px solid var(--k-border-strong);
-}
-
-.kanni-btn-secondary:hover {
-  border-color: var(--k-border-accent);
-  color: var(--k-text);
-  opacity: 1;
-  box-shadow: none;
-}
-
-.kanni-commit-result {
+.valkka-commit-result {
   font-size: 11px;
   padding: 4px 0;
   font-weight: 500;
 }
 
-.kanni-commit-result.success {
-  color: var(--k-accent);
+.valkka-commit-result.success { color: rgba(61,214,140,.75); }
+.valkka-commit-result.error { color: var(--red); }
+
+.valkka-branch-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  align-items: center;
 }
 
-.kanni-commit-result.error {
-  color: var(--k-danger);
+.valkka-input {
+  background: var(--s2);
+  border: 1px solid var(--b);
+  color: var(--t1);
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-family: var(--font);
+  font-size: 12px;
+  outline: none;
+  transition: border-color .15s;
+}
+
+.valkka-input:focus { border-color: rgba(90,104,238,.3); }
+
+.valkka-branch-input { flex: 1; }
+
+/* ── Empty state ─────────────────────────────────────────────── */
+
+.valkka-empty {
+  color: var(--t3);
+  font-size: 12px;
+  padding: 16px;
+  text-align: center;
 }
 
 /* ── Flash Toasts ────────────────────────────────────────────── */
 
 .toast .alert {
-  font-family: var(--k-font);
+  font-family: var(--font);
   font-size: 12px;
-  border-radius: var(--k-radius-md);
-  border: 1px solid var(--k-border-strong);
-  background: var(--k-surface-2);
-  color: var(--k-text);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  border-radius: 5px;
+  border: 1px solid var(--b);
+  background: var(--s2);
+  color: var(--t1);
+  box-shadow: 0 4px 24px rgba(0,0,0,.4);
 }
 
-.toast .alert-info {
-  border-color: var(--k-border-accent);
-  background: var(--k-surface-2);
-}
-
-.toast .alert-error {
-  border-color: rgba(240, 96, 112, 0.3);
-  background: var(--k-surface-2);
-}
-
-/* ── Generic input (reserved for future use; not currently rendered) ── */
-
-.kanni-input {
-  background: var(--k-surface-1);
-  border: 1px solid var(--k-border-strong);
-  color: var(--k-text);
-  border-radius: var(--k-radius-md);
-  padding: 8px 12px;
-  font-family: inherit;
-  font-size: 12px;
-  outline: none;
-  transition: border-color var(--k-duration) var(--k-ease),
-              box-shadow var(--k-duration) var(--k-ease);
-}
-
-.kanni-input:focus {
-  border-color: var(--k-accent);
-  box-shadow: 0 0 0 2px var(--k-accent-soft);
-}
-
-/* ── Header Indicators ──────────────────────────────────────── */
-
-.kanni-header-indicators {
-  margin-left: auto;
-  display: flex;
-  gap: 10px;
-  cursor: pointer;
-  transition: opacity var(--k-duration) var(--k-ease);
-}
-
-.kanni-indicator {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: color var(--k-duration) var(--k-ease);
-}
-
-.kanni-indicator.ok {
-  color: var(--k-text-dim);
-}
-
-.kanni-header-indicators:hover .kanni-indicator.ok {
-  color: var(--k-text-secondary);
-}
-
-.kanni-indicator.error {
-  color: var(--k-warning);
-  animation: pulse-dot 2.5s ease-in-out infinite;
-}
-
-/* ── Status View / Agent Detection ──────────────────────────── */
-
-.kanni-status {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.kanni-status-line {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 6px;
-  font-size: 12px;
-}
-
-.kanni-status-key {
-  font-weight: 500;
-  color: var(--k-text);
-}
-
-.kanni-status-val {
-  color: var(--k-text-dim);
-  font-weight: 300;
-}
-
-.kanni-status-dot.dim {
-  background: var(--k-text-ghost);
-}
-
-.kanni-agent-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 6px;
-  font-size: 12px;
-  border-radius: var(--k-radius-sm);
-  transition: background var(--k-duration) var(--k-ease);
-}
-
-.kanni-agent-row.clickable {
-  cursor: pointer;
-}
-
-.kanni-agent-row.clickable:hover {
-  background: var(--k-surface-1);
-}
-
-.kanni-agent-repo {
-  font-weight: 500;
-  color: var(--k-text);
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.kanni-agent-name {
-  color: var(--k-text-dim);
-  font-weight: 400;
-  font-size: 11px;
-}
-
-.kanni-agent-state {
-  color: var(--k-text-dim);
-  font-weight: 400;
-  font-size: 11px;
-}
-
-.kanni-agent-state.active {
-  color: var(--k-accent);
-}
-
-.kanni-indicator.active {
-  color: var(--k-accent);
-}
+.toast .alert-info { border-color: rgba(200,170,100,.2); }
+.toast .alert-error { border-color: rgba(191,92,92,.3); }

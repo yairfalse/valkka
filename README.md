@@ -1,8 +1,10 @@
-# Känni
+# Valkka
 
-AI-native git command center for agent-driven workflows.
+Command center for AI coding agents.
 
-Built for developers who work primarily with AI coding agents and need a git interface that understands their workflow: multiple repos, agent-made changes to review, fast context switching, and natural language over memorized flags.
+*Välkkä* — Finnish slang for recess. Short for *välitunti*. The best 20 minutes of the school day: sunny outside, bad sandwich, hateful kids, but for a moment you had hopes that it might be fun. That's the feeling. Agents write code, you supervise — and it doesn't feel like work.
+
+Multi-repo, local-first, no editor. See what your agents are doing, review their changes, commit, push — never leave Valkka.
 
 ## Stack
 
@@ -42,17 +44,17 @@ mix format         # format code
 ## Project Structure
 
 ```
-lib/kanni/            Core domain logic
+lib/valkka/            Core domain logic
   repo/               Repository supervision & state machines
   git/                NIF bindings + CLI fallback + types
   ai/                 AI provider behaviour & implementations
   cache/              ETS-backed caches (graph, commit, status)
   watcher/            Filesystem event handling
 
-lib/kanni_web/        Phoenix web layer
+lib/valkka_web/        Phoenix web layer
   live/               LiveView pages
 
-native/kanni_git/     Rust NIF crate (libgit2 bindings)
+native/valkka_git/     Rust NIF crate (libgit2 bindings)
 assets/js/hooks/      LiveView JS hooks (graph, diff)
 docs/                 Design documents
 ```

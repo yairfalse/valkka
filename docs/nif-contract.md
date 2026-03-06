@@ -1,4 +1,4 @@
-# Känni: Rust NIF Contract
+# Valkka: Rust NIF Contract
 
 > The NIF boundary is the most expensive thing to change. Get it right.
 
@@ -17,7 +17,7 @@
 ## 2. Crate Structure
 
 ```
-native/kanni_git/
+native/valkka_git/
 ├── Cargo.toml
 └── src/
     ├── lib.rs              # NIF registration, module init
@@ -81,10 +81,10 @@ unsafe impl Sync for RepoHandle {}
 ### Elixir Side
 
 ```elixir
-defmodule Känni.Git.Native do
+defmodule Valkka.Git.Native do
   use Rustler,
-    otp_app: :kanni,
-    crate: :kanni_git
+    otp_app: :valkka,
+    crate: :valkka_git
 
   # The handle is opaque. Elixir never inspects it.
   # When the Elixir process holding the reference dies,
@@ -519,7 +519,7 @@ For virtualized scrolling. Returns a window of the graph.
 
 ```rust
 #[derive(Debug)]
-pub enum KanniError {
+pub enum ValkkaError {
     // Git errors
     RepoNotFound(String),
     RefNotFound(String),
@@ -538,7 +538,7 @@ pub enum KanniError {
     ParseFailed(String),
 }
 
-impl Into<rustler::Error> for KanniError {
+impl Into<rustler::Error> for ValkkaError {
     fn into(self) -> rustler::Error {
         // Always return {:error, reason_string}
         // Never panic, never crash the BEAM
@@ -549,7 +549,7 @@ impl Into<rustler::Error> for KanniError {
 ### Elixir Side Error Handling
 
 ```elixir
-defmodule Känni.Git.Native do
+defmodule Valkka.Git.Native do
   # Every NIF call is wrapped to normalize errors
   def safe_call(fun) do
     case fun.() do
@@ -633,19 +633,19 @@ mod tests {
 ### Elixir Integration Tests
 
 ```elixir
-defmodule Känni.Git.NativeTest do
+defmodule Valkka.Git.NativeTest do
   use ExUnit.Case
 
   setup do
     # Create temp git repo with known state
     {:ok, path} = create_test_repo()
-    {:ok, handle} = Känni.Git.Native.repo_open(path)
+    {:ok, handle} = Valkka.Git.Native.repo_open(path)
     on_exit(fn -> File.rm_rf!(path) end)
     %{handle: handle, path: path}
   end
 
   test "log returns commits in order", %{handle: handle} do
-    {:ok, commits} = Känni.Git.Native.log(handle, %{limit: 10})
+    {:ok, commits} = Valkka.Git.Native.log(handle, %{limit: 10})
     assert length(commits) > 0
     assert hd(commits).oid |> String.length() == 40
   end

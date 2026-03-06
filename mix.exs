@@ -1,9 +1,9 @@
-defmodule Kanni.MixProject do
+defmodule Valkka.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :kanni,
+      app: :valkka,
       version: "0.1.0",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -11,8 +11,32 @@ defmodule Kanni.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      releases: releases()
     ]
+  end
+
+  defp releases do
+    [
+      valkka: [
+        steps: [:assemble] ++ burrito_steps(),
+        burrito: [
+          targets: [
+            macos_aarch64: [os: :darwin, cpu: :aarch64],
+            macos_x86_64: [os: :darwin, cpu: :x86_64],
+            linux_x86_64: [os: :linux, cpu: :x86_64]
+          ]
+        ]
+      ]
+    ]
+  end
+
+  defp burrito_steps do
+    if Code.ensure_loaded?(Burrito) do
+      [&Burrito.wrap/1]
+    else
+      []
+    end
   end
 
   # Configuration for the OTP application.
@@ -20,7 +44,7 @@ defmodule Kanni.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {Kanni.Application, []},
+      mod: {Valkka.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -68,7 +92,10 @@ defmodule Kanni.MixProject do
       {:file_system, "~> 1.0"},
 
       # HTTP client for AI providers
-      {:req, "~> 0.5"}
+      {:req, "~> 0.5"},
+
+      # Standalone binary packaging
+      {:burrito, github: "burrito-elixir/burrito", ref: "e85ec0c3e242a6150d23f4b4c0ee6cc108764f72", only: :prod}
     ]
   end
 
@@ -82,10 +109,10 @@ defmodule Kanni.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind kanni", "esbuild kanni"],
+      "assets.build": ["compile", "tailwind valkka", "esbuild valkka"],
       "assets.deploy": [
-        "tailwind kanni --minify",
-        "esbuild kanni --minify",
+        "tailwind valkka --minify",
+        "esbuild valkka --minify",
         "phx.digest"
       ],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]

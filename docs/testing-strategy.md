@@ -1,4 +1,4 @@
-# Känni: Testing Strategy
+# Valkka: Testing Strategy
 
 > Borrowed from Kerto's discipline: 243 tests, no mocks for domain code.
 > Borrowed from Sykli's approach: real test projects, integration over unit.
@@ -63,7 +63,7 @@
 ### Test Fixtures
 
 ```
-native/kanni_git/tests/fixtures/
+native/valkka_git/tests/fixtures/
 ├── repos/
 │   ├── linear/          # 10 commits, no branches
 │   ├── branching/       # 3 branches, merges
@@ -186,7 +186,7 @@ Pure Elixir code — types, intent parsing, domain logic.
 ### Example Elixir Domain Tests
 
 ```elixir
-defmodule Känni.AI.IntentParserTest do
+defmodule Valkka.AI.IntentParserTest do
   use ExUnit.Case, async: true
 
   describe "regex fast path" do
@@ -221,7 +221,7 @@ defmodule Känni.AI.IntentParserTest do
   end
 end
 
-defmodule Känni.ConversationTest do
+defmodule Valkka.ConversationTest do
   use ExUnit.Case, async: true
 
   test "exchanges are append-only" do
@@ -264,11 +264,11 @@ Real GenServers, real NIFs, real temp git repos.
 ### Test Helpers
 
 ```elixir
-defmodule Känni.TestHelpers do
+defmodule Valkka.TestHelpers do
   @moduledoc "Helpers for creating test git repos with known state."
 
   def create_test_repo(opts \\ []) do
-    dir = System.tmp_dir!() |> Path.join("kanni_test_#{:rand.uniform(999_999)}")
+    dir = System.tmp_dir!() |> Path.join("valkka_test_#{:rand.uniform(999_999)}")
     File.mkdir_p!(dir)
 
     # Init repo
@@ -307,13 +307,13 @@ end
 ### Example Integration Tests
 
 ```elixir
-defmodule Känni.Repo.WorkerTest do
+defmodule Valkka.Repo.WorkerTest do
   use ExUnit.Case
-  import Känni.TestHelpers
+  import Valkka.TestHelpers
 
   setup do
     dir = create_test_repo(branches: ["feat/auth", "feat/api"], dirty: true)
-    {:ok, pid} = Känni.Repo.Worker.start_link(path: dir)
+    {:ok, pid} = Valkka.Repo.Worker.start_link(path: dir)
     on_exit(fn ->
       GenServer.stop(pid)
       cleanup_test_repo(dir)
@@ -322,20 +322,20 @@ defmodule Känni.Repo.WorkerTest do
   end
 
   test "reports dirty status", %{pid: pid} do
-    status = Känni.Repo.Worker.status(pid)
+    status = Valkka.Repo.Worker.status(pid)
     assert status.state == :dirty
     assert length(status.untracked) > 0
   end
 
   test "can switch branches", %{pid: pid} do
-    assert :ok = Känni.Repo.Worker.checkout(pid, "feat/auth")
-    status = Känni.Repo.Worker.status(pid)
+    assert :ok = Valkka.Repo.Worker.checkout(pid, "feat/auth")
+    status = Valkka.Repo.Worker.status(pid)
     assert status.branch == "feat/auth"
   end
 
   test "commit creates new commit", %{pid: pid} do
-    Känni.Repo.Worker.stage(pid, ["dirty.txt"])
-    {:ok, oid} = Känni.Repo.Worker.commit(pid, "add dirty file")
+    Valkka.Repo.Worker.stage(pid, ["dirty.txt"])
+    {:ok, oid} = Valkka.Repo.Worker.commit(pid, "add dirty file")
     assert String.length(oid) == 40
   end
 
@@ -363,20 +363,20 @@ end
 ### Example LiveView Test
 
 ```elixir
-defmodule KänniWeb.ChatLiveTest do
-  use KänniWeb.ConnCase
+defmodule ValkkaWeb.ChatLiveTest do
+  use ValkkaWeb.ConnCase
   import Phoenix.LiveViewTest
 
   setup do
-    dir = Känni.TestHelpers.create_test_repo()
-    {:ok, _} = Känni.Repo.Worker.start_link(path: dir)
-    on_exit(fn -> Känni.TestHelpers.cleanup_test_repo(dir) end)
+    dir = Valkka.TestHelpers.create_test_repo()
+    {:ok, _} = Valkka.Repo.Worker.start_link(path: dir)
+    on_exit(fn -> Valkka.TestHelpers.cleanup_test_repo(dir) end)
     %{dir: dir}
   end
 
   test "shows workspace status on mount", %{conn: conn} do
     {:ok, view, html} = live(conn, "/")
-    assert html =~ "kanni_test"
+    assert html =~ "valkka_test"
     assert html =~ "main"
   end
 
@@ -407,8 +407,8 @@ end
 ### Mock Provider
 
 ```elixir
-defmodule Känni.AI.Providers.Mock do
-  @behaviour Känni.AI.Provider
+defmodule Valkka.AI.Providers.Mock do
+  @behaviour Valkka.AI.Provider
 
   @impl true
   def stream(prompt, _opts) do
@@ -433,14 +433,14 @@ end
 
 ```elixir
 # config/test.exs
-config :kanni, :ai_provider, Känni.AI.Providers.Mock
+config :valkka, :ai_provider, Valkka.AI.Providers.Mock
 ```
 
 ---
 
 ## 8. Testing the Semantic Diff
 
-This is Känni's moat — test it thoroughly.
+This is Valkka's moat — test it thoroughly.
 
 ### Test Matrix
 
@@ -463,7 +463,7 @@ This is Känni's moat — test it thoroughly.
 ### Golden File Tests
 
 ```
-native/kanni_git/tests/semantic/golden/
+native/valkka_git/tests/semantic/golden/
 ├── rust/
 │   ├── add_function.before.rs
 │   ├── add_function.after.rs
@@ -483,11 +483,11 @@ native/kanni_git/tests/semantic/golden/
 ## 9. CI Integration (Sykli)
 
 ```go
-// sykli.go for Känni
+// sykli.go for Valkka
 s := sykli.New()
 
 rust := s.Task("rust-tests").
-    Run("cd native/kanni_git && cargo test").
+    Run("cd native/valkka_git && cargo test").
     Inputs("native/**/*.rs", "native/**/Cargo.toml")
 
 elixir := s.Task("elixir-tests").
@@ -505,7 +505,7 @@ dialyzer := s.Task("dialyzer").
     After("elixir-tests")
 
 s.Task("clippy").
-    Run("cd native/kanni_git && cargo clippy -- -D warnings").
+    Run("cd native/valkka_git && cargo clippy -- -D warnings").
     Inputs("native/**/*.rs")
 
 s.Emit()

@@ -4,9 +4,9 @@
 
 ---
 
-## 1. Why DST for Kanni
+## 1. Why DST for Valkka
 
-Kanni is a concurrent system with at least seven sources of nondeterminism:
+Valkka is a concurrent system with at least seven sources of nondeterminism:
 
 1. File system events arrive in unpredictable order and batch sizes
 2. Rust NIFs run on dirty schedulers with variable latency
@@ -97,7 +97,7 @@ Controllable monotonic clock. All time-dependent code reads from SimClock
 instead of `System.monotonic_time/0` or `DateTime.utc_now/0`.
 
 ```elixir
-defmodule Kanni.DST.SimClock do
+defmodule Valkka.DST.SimClock do
   @moduledoc """
   Deterministic clock for simulation testing.
 
@@ -306,7 +306,7 @@ end
 Deterministic file system event source. Replaces the `FileSystem` library watcher.
 
 ```elixir
-defmodule Kanni.DST.SimFileSystem do
+defmodule Valkka.DST.SimFileSystem do
   @moduledoc """
   Deterministic file system watcher for simulation testing.
 
@@ -547,7 +547,7 @@ end
 Deterministic AI provider that replaces real LLM API calls.
 
 ```elixir
-defmodule Kanni.DST.SimAI do
+defmodule Valkka.DST.SimAI do
   @moduledoc """
   Deterministic AI provider for simulation testing.
 
@@ -557,7 +557,7 @@ defmodule Kanni.DST.SimAI do
   - Failure injection (timeout, disconnect, invalid response)
   - Provider switching (primary fails, secondary used)
 
-  Implements the `Kanni.AI.Provider` behaviour.
+  Implements the `Valkka.AI.Provider` behaviour.
 
   ## Usage
 
@@ -577,7 +577,7 @@ defmodule Kanni.DST.SimAI do
 
   use GenServer
 
-  @behaviour Kanni.AI.Provider
+  @behaviour Valkka.AI.Provider
 
   defstruct [
     :seed,
@@ -652,7 +652,7 @@ defmodule Kanni.DST.SimAI do
 
   # --- Behaviour implementation ---
 
-  @impl Kanni.AI.Provider
+  @impl Valkka.AI.Provider
   def stream(prompt, opts) do
     __MODULE__.stream(__MODULE__, prompt, opts)
   end
@@ -863,7 +863,7 @@ end
 In-memory git state that replaces real Rust NIF calls.
 
 ```elixir
-defmodule Kanni.DST.SimGit do
+defmodule Valkka.DST.SimGit do
   @moduledoc """
   In-memory git simulation replacing Rust NIF calls.
 
@@ -1505,7 +1505,7 @@ end
 Reproducible randomness for all nondeterministic decisions in the harness.
 
 ```elixir
-defmodule Kanni.DST.SeededRandom do
+defmodule Valkka.DST.SeededRandom do
   @moduledoc """
   Reproducible random number generator for DST.
 
@@ -1609,13 +1609,13 @@ end
 ### 4a. Concurrent Repo Operations
 
 ```elixir
-defmodule Kanni.DST.Scenarios.ConcurrentRepoOps do
+defmodule Valkka.DST.Scenarios.ConcurrentRepoOps do
   @moduledoc """
   Scenarios where multiple operations target the same repository
   simultaneously, or where state changes during an ongoing operation.
   """
 
-  alias Kanni.DST.{SimClock, SimGit, SimFileSystem, SeededRandom}
+  alias Valkka.DST.{SimClock, SimGit, SimFileSystem, SeededRandom}
 
   @doc """
   Two operations on same repo simultaneously.
@@ -1781,13 +1781,13 @@ end
 ### 4b. AI Streaming Failures
 
 ```elixir
-defmodule Kanni.DST.Scenarios.AIStreamingFailures do
+defmodule Valkka.DST.Scenarios.AIStreamingFailures do
   @moduledoc """
   Scenarios covering AI provider failures during streaming,
   backpressure, provider switching, and context building timeouts.
   """
 
-  alias Kanni.DST.{SimClock, SimAI}
+  alias Valkka.DST.{SimClock, SimAI}
 
   @doc """
   Stream interrupts at various points.
@@ -1940,14 +1940,14 @@ end
 ### 4c. NIF Crash Recovery
 
 ```elixir
-defmodule Kanni.DST.Scenarios.NIFCrashRecovery do
+defmodule Valkka.DST.Scenarios.NIFCrashRecovery do
   @moduledoc """
   Scenarios for Rust NIF failures: mutex poisoning, handle invalidation,
   and memory pressure. Tests that the Elixir supervision tree recovers
   gracefully and no state is corrupted.
   """
 
-  alias Kanni.DST.{SimClock, SimGit}
+  alias Valkka.DST.{SimClock, SimGit}
 
   @doc """
   Mutex poisoning simulation.
@@ -2043,13 +2043,13 @@ end
 ### 4d. File Watcher Storms
 
 ```elixir
-defmodule Kanni.DST.Scenarios.FileWatcherStorms do
+defmodule Valkka.DST.Scenarios.FileWatcherStorms do
   @moduledoc """
   Scenarios for rapid file system events: git checkout storms,
   create/delete cycles, symlink changes, and .git directory filtering.
   """
 
-  alias Kanni.DST.{SimClock, SimFileSystem}
+  alias Valkka.DST.{SimClock, SimFileSystem}
 
   @doc """
   1000 file changes in 100ms (git checkout scenario).
@@ -2189,14 +2189,14 @@ end
 ### 4e. Network Failures
 
 ```elixir
-defmodule Kanni.DST.Scenarios.NetworkFailures do
+defmodule Valkka.DST.Scenarios.NetworkFailures do
   @moduledoc """
   Scenarios for git network operations failing: push timeout,
   conflicting remote changes, DNS resolution failure, and
   partial transfers.
   """
 
-  alias Kanni.DST.{SimClock, SimGit}
+  alias Valkka.DST.{SimClock, SimGit}
 
   @doc "Push timeout — remote does not respond within deadline."
   def push_timeout(seed) do
@@ -2311,7 +2311,7 @@ end
 ### 4f. LiveView Reconnection
 
 ```elixir
-defmodule Kanni.DST.Scenarios.LiveViewReconnection do
+defmodule Valkka.DST.Scenarios.LiveViewReconnection do
   @moduledoc """
   Scenarios for WebSocket lifecycle events: server restart,
   stale state after reconnect, and multiple tabs with the same repo.
@@ -2323,7 +2323,7 @@ defmodule Kanni.DST.Scenarios.LiveViewReconnection do
   3. New process must catch up on missed state changes
   """
 
-  alias Kanni.DST.{SimClock, SimGit, SimFileSystem}
+  alias Valkka.DST.{SimClock, SimGit, SimFileSystem}
 
   @doc """
   Server restart while client connected.
@@ -2339,7 +2339,7 @@ defmodule Kanni.DST.Scenarios.LiveViewReconnection do
     {:ok, handle} = SimGit.repo_open(git, "repo-1")
 
     # Simulate "connected client" by subscribing to PubSub
-    # In real code: Phoenix.PubSub.subscribe(Kanni.PubSub, "repo:repo-1")
+    # In real code: Phoenix.PubSub.subscribe(Valkka.PubSub, "repo:repo-1")
 
     # Get initial state
     {:ok, state_before} = SimGit.repo_info(git, handle)
@@ -2441,7 +2441,7 @@ end
 Use StreamData for properties that must hold regardless of the seed.
 
 ```elixir
-defmodule Kanni.DST.Properties do
+defmodule Valkka.DST.Properties do
   @moduledoc """
   Property-based tests using StreamData.
 
@@ -2453,7 +2453,7 @@ defmodule Kanni.DST.Properties do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
-  alias Kanni.DST.{SimClock, SimGit, SimAI, SeededRandom}
+  alias Valkka.DST.{SimClock, SimGit, SimAI, SeededRandom}
 
   # --- Generators ---
 
@@ -2655,7 +2655,7 @@ end
 Every DST test run logs its seed. On failure, the seed is the reproduction key.
 
 ```elixir
-defmodule Kanni.DST.SeedManager do
+defmodule Valkka.DST.SeedManager do
   @moduledoc """
   Manages seed generation, logging, and replay for DST runs.
 
@@ -2785,7 +2785,7 @@ end
 ### 6.2 Test Runner Integration
 
 ```elixir
-defmodule Kanni.DST.Runner do
+defmodule Valkka.DST.Runner do
   @moduledoc """
   Runs DST scenarios with seed management.
 
@@ -2796,13 +2796,13 @@ defmodule Kanni.DST.Runner do
 
         @tag :dst
         test "concurrent repo operations survive any interleaving" do
-          seed = Kanni.DST.SeedManager.generate_or_replay()
+          seed = Valkka.DST.SeedManager.generate_or_replay()
 
           try do
-            Kanni.DST.Scenarios.ConcurrentRepoOps.two_ops_same_repo(seed)
+            Valkka.DST.Scenarios.ConcurrentRepoOps.two_ops_same_repo(seed)
           rescue
             e ->
-              Kanni.DST.SeedManager.record_failure(seed, "two_ops_same_repo", Exception.message(e))
+              Valkka.DST.SeedManager.record_failure(seed, "two_ops_same_repo", Exception.message(e))
               reraise e, __STACKTRACE__
           end
         end
@@ -2826,8 +2826,8 @@ defmodule Kanni.DST.Runner do
   def run(scenario_module, scenario_fn, opts \\ []) do
     seed =
       case System.get_env("DST_SEED") do
-        nil -> Kanni.DST.SeedManager.generate_or_replay(opts)
-        s -> Kanni.DST.SeedManager.generate_or_replay(seed: String.to_integer(s))
+        nil -> Valkka.DST.SeedManager.generate_or_replay(opts)
+        s -> Valkka.DST.SeedManager.generate_or_replay(seed: String.to_integer(s))
       end
 
     try do
@@ -2835,7 +2835,7 @@ defmodule Kanni.DST.Runner do
     rescue
       e ->
         scenario_name = "#{inspect(scenario_module)}.#{scenario_fn}"
-        Kanni.DST.SeedManager.record_failure(seed, scenario_name, Exception.message(e))
+        Valkka.DST.SeedManager.record_failure(seed, scenario_name, Exception.message(e))
         reraise e, __STACKTRACE__
     end
   end
@@ -2928,7 +2928,7 @@ test/
 │       ├── network_failures_test.exs
 │       └── liveview_reconnection_test.exs
 │
-lib/kanni/dst/
+lib/valkka/dst/
 ├── sim_clock.ex
 ├── sim_file_system.ex
 ├── sim_ai.ex
@@ -2951,7 +2951,7 @@ lib/kanni/dst/
 
 1. **One seed, one outcome.** Given the same seed, every DST run produces the exact same sequence of events, failures, and results. No wall-clock time, no real I/O, no OS-level nondeterminism.
 
-2. **Sim modules are drop-in replacements.** `SimGit` has the same API shape as `Kanni.Git.Native`. `SimAI` implements the same `Provider` behaviour. Application code uses a behaviour/protocol boundary; tests swap in the simulation.
+2. **Sim modules are drop-in replacements.** `SimGit` has the same API shape as `Valkka.Git.Native`. `SimAI` implements the same `Provider` behaviour. Application code uses a behaviour/protocol boundary; tests swap in the simulation.
 
 3. **Clock is the universal coordinator.** Nothing happens unless `SimClock.advance/2` is called. Events fire in deterministic order within a tick. No `Process.sleep`, no `:timer.sleep`, no real time.
 

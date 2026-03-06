@@ -1,4 +1,4 @@
-# Känni: User Stories & MVP Scope
+# Valkka: User Stories & MVP Scope
 
 > What the user does. Not what the system does.
 
@@ -21,12 +21,12 @@
 ### P0: Must Ship in MVP
 
 #### US-01: First Launch
-> As a developer, I want to point Känni at a directory and immediately see all my repos' status, so I can orient myself without running git commands.
+> As a developer, I want to point Valkka at a directory and immediately see all my repos' status, so I can orient myself without running git commands.
 
 **Flow:**
 ```
-1. User runs: känni ~/projects
-2. Känni scans for .git directories (1 level deep by default)
+1. User runs: valkka ~/projects
+2. Valkka scans for .git directories (1 level deep by default)
 3. Dashboard shows all found repos with:
    - Name, current branch, clean/dirty status
    - Commits ahead/behind upstream
@@ -40,12 +40,12 @@
 - Remembers workspace on next launch
 
 #### US-02: Natural Language Git
-> As a developer, I want to type what I want in plain English and have Känni execute the right git commands, so I don't have to remember flags.
+> As a developer, I want to type what I want in plain English and have Valkka execute the right git commands, so I don't have to remember flags.
 
 **Flow:**
 ```
 1. User types: "show me what changed today"
-2. Känni parses intent → {:query, :changes_since, %{since: "today"}}
+2. Valkka parses intent → {:query, :changes_since, %{since: "today"}}
 3. Runs NIF: log(handle, %{since: today_midnight})
 4. Displays: list of commits with semantic summaries
 ```
@@ -72,16 +72,16 @@
 - Shows what git command will be executed before running
 
 #### US-03: AI Commit Messages
-> As a developer, I want Känni to read my diff and suggest a commit message, so I can commit faster with better messages.
+> As a developer, I want Valkka to read my diff and suggest a commit message, so I can commit faster with better messages.
 
 **Flow:**
 ```
 1. User has uncommitted changes
 2. Types: "commit" or clicks Commit button
-3. Känni runs semantic_diff on staged changes
+3. Valkka runs semantic_diff on staged changes
 4. AI generates commit message from structured diff
 5. User sees message, can edit or accept
-6. Känni commits
+6. Valkka commits
 ```
 
 **Acceptance criteria:**
@@ -113,7 +113,7 @@
 - Merge commits clearly show merge topology
 
 #### US-05: Real-Time File Watching
-> As a developer, I want Känni to update instantly when files change on disk, so I always see current state without refreshing.
+> As a developer, I want Valkka to update instantly when files change on disk, so I always see current state without refreshing.
 
 **Flow:**
 ```
@@ -150,42 +150,42 @@
 ### P1: Ship Soon After MVP
 
 #### US-07: PR Review with AI
-> As a developer, I want Känni to review a PR and give me a structured assessment with risks and suggestions, so I can review faster.
+> As a developer, I want Valkka to review a PR and give me a structured assessment with risks and suggestions, so I can review faster.
 
 **Flow:**
 ```
 1. User: "review PR #42"
-2. Känni fetches PR diff (GitHub API)
+2. Valkka fetches PR diff (GitHub API)
 3. Runs semantic_diff → structured changes
 4. AI analyzes: summary, file-by-file, risks, suggestions
 5. Streams response to chat
-6. User can approve/request changes directly from Känni
+6. User can approve/request changes directly from Valkka
 ```
 
 #### US-08: Conflict Resolution with AI
-> As a developer, I want Känni to show me merge conflicts with AI-suggested resolutions, so I can resolve conflicts without opening an editor.
+> As a developer, I want Valkka to show me merge conflicts with AI-suggested resolutions, so I can resolve conflicts without opening an editor.
 
 #### US-09: Branch Health Dashboard
 > As a developer, I want to see which branches are stale, which are ahead/behind, and which have conflicts, so I can manage branches proactively.
 
 #### US-10: Kerto Integration
-> As a developer, I want Känni to feed git operations into Kerto's knowledge graph, so my project context accumulates over time.
+> As a developer, I want Valkka to feed git operations into Kerto's knowledge graph, so my project context accumulates over time.
 
 #### US-11: Sykli Integration
-> As a developer, I want to see CI status from Sykli directly in Känni, so I know if my changes are passing without switching tools.
+> As a developer, I want to see CI status from Sykli directly in Valkka, so I know if my changes are passing without switching tools.
 
 ---
 
 ### P2: Future
 
 #### US-12: Session Memory
-> As a developer, I want Känni to remember what I did across sessions, so I can ask "what was that command I ran yesterday?"
+> As a developer, I want Valkka to remember what I did across sessions, so I can ask "what was that command I ran yesterday?"
 
 #### US-13: Team Collaboration
 > As a team, we want to share workspace state via mesh networking (BEAM distribution), so we can collaborate without a central server.
 
 #### US-14: MCP Server
-> As an AI agent, I want to access Känni's git operations via MCP, so I can perform git operations without CLI.
+> As an AI agent, I want to access Valkka's git operations via MCP, so I can perform git operations without CLI.
 
 #### US-15: Custom Workflows
 > As a developer, I want to define reusable workflows ("prepare release" = tag + changelog + push), so I can automate repetitive sequences.
@@ -219,27 +219,27 @@
 
 ### MVP Success Criteria
 
-1. **Daily driver test:** Can you use Känni for all git operations for 1 week without touching `git` CLI?
+1. **Daily driver test:** Can you use Valkka for all git operations for 1 week without touching `git` CLI?
 2. **Speed test:** Every operation feels instant (< 200ms for git ops, < 1s for AI start)
-3. **Stability test:** Leave Känni running for 24 hours watching 5 repos. Zero crashes.
+3. **Stability test:** Leave Valkka running for 24 hours watching 5 repos. Zero crashes.
 
 ---
 
 ## 4. First 5 Minutes (Onboarding Flow)
 
 ```
-$ känni
+$ valkka
 
   ╦╔═╔═╗╔╗╔╔╗╔╦
   ╠╩╗╠═╣║║║║║║║
   ╩ ╩╩ ╩╝╚╝╝╚╝╩
 
-  Welcome to Känni — your AI-native git command center.
+  Welcome to Valkka — your AI-native git command center.
 
   Scanning ~/projects for repositories...
 
   Found 4 repos:
-    kanni          main     clean     2 min ago
+    valkka          main     clean     2 min ago
     false-protocol feat/v2  3 dirty   15 min ago
     kerto          main     clean     1 hour ago
     sykli          main     clean     3 hours ago
@@ -263,7 +263,7 @@ $ känni
 - **Strict dependency layers**: Domain → Application → Infrastructure
 
 ### From Sykli
-- **Structured context generation**: `.kanni/context.json` for AI agents
+- **Structured context generation**: `.valkka/context.json` for AI agents
 - **Rich error formatting**: Git errors become structured, not raw stderr
 - **Same code local/remote**: BEAM distribution for future team features
 - **AI-native metadata**: Semantic understanding of what changed
