@@ -161,9 +161,10 @@ defmodule Valkka.ActivityTest do
     test "falls back gracefully for invalid repo path" do
       {summary, detail} = Activity.fetch_commit_info("/nonexistent", "abc123def", "main", 2)
 
-      assert summary =~ "abc123d"
+      assert summary =~ "committed on main"
       assert detail.branch == "main"
       assert detail.sha == "abc123def"
+      assert detail.short_oid == "abc123d"
     end
   end
 

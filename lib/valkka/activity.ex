@@ -226,17 +226,36 @@ defmodule Valkka.Activity do
 
   @doc false
   def fetch_commit_info(repo_path, oid, branch, files_committed) do
-    case System.cmd("git", ["log", "-1", "--format=%H\0%s", oid],
+    case System.cmd("git", ["log", "-1", "--format=%H\0%s\0%an", oid],
            cd: repo_path,
            stderr_to_stdout: true
          ) do
       {output, 0} ->
         case String.split(String.trim(output), "\0") do
+          [sha, message, author] ->
+            short = String.slice(sha, 0, 7)
+
+            {message,
+             %{
+               sha: sha,
+               short_oid: short,
+               message: message,
+               author: author,
+               branch: branch,
+               files_committed: files_committed
+             }}
+
           [sha, message] ->
             short = String.slice(sha, 0, 7)
 
-            {"#{short} #{message}",
-             %{sha: sha, message: message, branch: branch, files_committed: files_committed}}
+            {message,
+             %{
+               sha: sha,
+               short_oid: short,
+               message: message,
+               branch: branch,
+               files_committed: files_committed
+             }}
 
           _ ->
             fallback_commit_info(oid, branch, files_committed)
@@ -250,8 +269,8 @@ defmodule Valkka.Activity do
   defp fallback_commit_info(oid, branch, files_committed) do
     short = String.slice(oid, 0, 7)
 
-    {"#{short} committed on #{branch}",
-     %{sha: oid, branch: branch, files_committed: files_committed}}
+    {"committed on #{branch}",
+     %{sha: oid, short_oid: short, branch: branch, files_committed: files_committed}}
   end
 
   defp maybe_detect_status_change(entries, old, new) do
