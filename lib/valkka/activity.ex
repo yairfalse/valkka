@@ -15,6 +15,7 @@ defmodule Valkka.Activity do
             | :branch_switched
             | :repo_status
             | :pushed
+            | :pulled
             | :agent_started
             | :agent_stopped
 
@@ -69,22 +70,37 @@ defmodule Valkka.Activity do
 
   @doc """
   Flush the buffer, converting pending file changes into Entry structs.
-  Returns {new_entries, empty_buffer}.
+  Checks active agents to attribute changes. Returns {new_entries, empty_buffer}.
   """
-  def flush_buffer(buffer) do
+  def flush_buffer(buffer, agents \\ []) do
+    active_agent_map =
+      agents
+      |> Enum.filter(& &1.active)
+      |> Map.new(fn a -> {a.repo_path, a} end)
+
     entries =
       buffer
       |> Enum.map(fn {repo_path, %{repo: repo, files: files, first_seen: ts}} ->
         file_list = files |> MapSet.to_list() |> Enum.sort()
         count = length(file_list)
+        agent = Map.get(active_agent_map, repo_path)
+
+        {summary, detail} =
+          if agent do
+            {"#{agent.name} modified #{count} #{pluralize(count, "file")}",
+             %{agent_name: agent.name, pid: agent.pid}}
+          else
+            {file_change_summary(count), %{}}
+          end
 
         %Entry{
           id: generate_id(),
           type: :files_changed,
           repo: repo,
           repo_path: repo_path,
-          summary: file_change_summary(count),
+          summary: summary,
           files: file_list,
+          detail: detail,
           timestamp: ts
         }
       end)
@@ -127,20 +143,40 @@ defmodule Valkka.Activity do
   Build activity entries from agent start/stop events.
   Takes an agent map (%{name, pid, repo_path, active}) and an event type.
   """
-  def agent_entry(agent, type) when type in [:agent_started, :agent_stopped] do
+  def agent_entry(agent, type, session_info \\ %{})
+
+  def agent_entry(agent, :agent_started, _session_info) do
     %Entry{
       id: generate_id(),
-      type: type,
+      type: :agent_started,
       repo: Path.basename(agent.repo_path),
       repo_path: agent.repo_path,
-      summary: agent_summary(type, agent.name),
+      summary: "#{agent.name} started",
       detail: %{agent_name: agent.name, pid: agent.pid},
       timestamp: DateTime.utc_now()
     }
   end
 
-  defp agent_summary(:agent_started, name), do: "#{name} started"
-  defp agent_summary(:agent_stopped, name), do: "#{name} stopped"
+  def agent_entry(agent, :agent_stopped, session_info) do
+    duration = Map.get(session_info, :duration)
+
+    summary =
+      if duration do
+        "#{agent.name} stopped · #{duration}"
+      else
+        "#{agent.name} stopped"
+      end
+
+    %Entry{
+      id: generate_id(),
+      type: :agent_stopped,
+      repo: Path.basename(agent.repo_path),
+      repo_path: agent.repo_path,
+      summary: summary,
+      detail: Map.merge(%{agent_name: agent.name, pid: agent.pid}, session_info),
+      timestamp: DateTime.utc_now()
+    }
+  end
 
   # -- Private --
 
@@ -198,7 +234,9 @@ defmodule Valkka.Activity do
         case String.split(String.trim(output), "\0") do
           [sha, message] ->
             short = String.slice(sha, 0, 7)
-            {"#{short} #{message}", %{sha: sha, message: message, branch: branch, files_committed: files_committed}}
+
+            {"#{short} #{message}",
+             %{sha: sha, message: message, branch: branch, files_committed: files_committed}}
 
           _ ->
             fallback_commit_info(oid, branch, files_committed)
@@ -211,7 +249,9 @@ defmodule Valkka.Activity do
 
   defp fallback_commit_info(oid, branch, files_committed) do
     short = String.slice(oid, 0, 7)
-    {"#{short} committed on #{branch}", %{sha: oid, branch: branch, files_committed: files_committed}}
+
+    {"#{short} committed on #{branch}",
+     %{sha: oid, branch: branch, files_committed: files_committed}}
   end
 
   defp maybe_detect_status_change(entries, old, new) do
