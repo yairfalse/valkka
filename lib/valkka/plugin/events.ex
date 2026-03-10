@@ -18,7 +18,9 @@ defmodule Valkka.Plugin.Events do
           mod.handle_event(event)
         rescue
           e ->
-            Logger.warning("Plugin #{mod.name()} failed to handle #{type}: #{Exception.message(e)}")
+            Logger.warning(
+              "Plugin #{mod.name()} failed to handle #{type}: #{Exception.message(e)}"
+            )
         end
       end)
     end

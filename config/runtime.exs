@@ -15,20 +15,20 @@ if config_env() == :prod do
   secret_key_base =
     System.get_env("SECRET_KEY_BASE") ||
       (fn ->
-        config_dir = :filename.basedir(:user_config, ~c"valkka") |> to_string()
-        secret_file = Path.join(config_dir, "secret_key_base")
+         config_dir = :filename.basedir(:user_config, ~c"valkka") |> to_string()
+         secret_file = Path.join(config_dir, "secret_key_base")
 
-        case File.read(secret_file) do
-          {:ok, secret} ->
-            String.trim(secret)
+         case File.read(secret_file) do
+           {:ok, secret} ->
+             String.trim(secret)
 
-          {:error, _} ->
-            secret = :crypto.strong_rand_bytes(64) |> Base.url_encode64(padding: false)
-            File.mkdir_p!(config_dir)
-            File.write!(secret_file, secret)
-            secret
-        end
-      end).()
+           {:error, _} ->
+             secret = :crypto.strong_rand_bytes(64) |> Base.url_encode64(padding: false)
+             File.mkdir_p!(config_dir)
+             File.write!(secret_file, secret)
+             secret
+         end
+       end).()
 
   port = String.to_integer(System.get_env("PORT", "4420"))
 

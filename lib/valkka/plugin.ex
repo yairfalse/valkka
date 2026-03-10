@@ -10,7 +10,12 @@ defmodule Valkka.Plugin do
   - `:agent_detector` — detects AI agents running in repos
   """
 
-  @type capability :: :context_provider | :event_consumer | :action_provider | :panel_provider | :agent_detector
+  @type capability ::
+          :context_provider
+          | :event_consumer
+          | :action_provider
+          | :panel_provider
+          | :agent_detector
 
   @callback name() :: String.t()
   @callback capabilities() :: [capability()]
