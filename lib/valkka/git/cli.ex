@@ -49,6 +49,24 @@ defmodule Valkka.Git.CLI do
     run(repo_path, ["push"])
   end
 
+  @doc "Pull current branch from origin (fast-forward only)."
+  @spec pull(String.t()) :: {:ok, String.t()} | {:error, term()}
+  def pull(repo_path) do
+    run(repo_path, ["pull", "--ff-only"])
+  end
+
+  @doc "Get files changed in a specific commit."
+  @spec commit_files(String.t(), String.t()) :: {:ok, [map()]} | {:error, term()}
+  def commit_files(repo_path, oid) do
+    args = ["diff-tree", "--no-commit-id", "-r", "--name-status", oid]
+
+    case run(repo_path, args) do
+      {:ok, ""} -> {:ok, []}
+      {:ok, output} -> {:ok, parse_commit_files(output)}
+      {:error, _} = err -> err
+    end
+  end
+
   @doc "Get configured user name and email."
   @spec user_config(String.t()) :: {String.t(), String.t()}
   def user_config(repo_path) do
@@ -116,6 +134,24 @@ defmodule Valkka.Git.CLI do
   defp strip_decoration_prefix("HEAD -> " <> rest), do: rest
   defp strip_decoration_prefix("tag: " <> rest), do: rest
   defp strip_decoration_prefix(ref), do: ref
+
+  defp parse_commit_files(output) do
+    output
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      case String.split(line, "\t", parts: 2) do
+        [status, path] -> %{status: file_status_from_letter(status), path: path}
+        _ -> nil
+      end
+    end)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp file_status_from_letter("A"), do: "added"
+  defp file_status_from_letter("M"), do: "modified"
+  defp file_status_from_letter("D"), do: "deleted"
+  defp file_status_from_letter("R" <> _), do: "renamed"
+  defp file_status_from_letter(_), do: "modified"
 
   defp parse_branches(output) do
     output
