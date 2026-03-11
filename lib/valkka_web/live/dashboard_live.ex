@@ -245,13 +245,17 @@ defmodule ValkkaWeb.DashboardLive do
       parents: params["parents"] || []
     }
 
-    files =
-      case Valkka.Git.CLI.commit_files(socket.assigns.selected_path, commit.oid) do
-        {:ok, f} -> f
-        _ -> []
-      end
+    repo_path = socket.assigns.selected_path
+    oid = commit.oid
 
-    {:noreply, assign(socket, selected_commit: commit, commit_files: files)}
+    Task.Supervisor.async_nolink(Valkka.TaskSupervisor, fn ->
+      case Valkka.Git.CLI.commit_files(repo_path, oid) do
+        {:ok, f} -> {:commit_files_loaded, oid, f}
+        _ -> {:commit_files_loaded, oid, []}
+      end
+    end)
+
+    {:noreply, assign(socket, selected_commit: commit, commit_files: [])}
   end
 
   def handle_event("graph:deselect_commit", _params, socket) do
@@ -485,6 +489,23 @@ defmodule ValkkaWeb.DashboardLive do
     activity = Activity.prepend(socket.assigns.activity, new_entries)
 
     {:noreply, assign(socket, activity: activity, activity_buffer: buffer, activity_timer: nil)}
+  end
+
+  def handle_info({ref, {:commit_files_loaded, oid, files}}, socket) when is_reference(ref) do
+    Process.demonitor(ref, [:flush])
+
+    socket =
+      if socket.assigns.selected_commit && socket.assigns.selected_commit.oid == oid do
+        assign(socket, commit_files: files)
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:DOWN, _ref, :process, _pid, _reason}, socket) do
+    {:noreply, socket}
   end
 
   def handle_info(_msg, socket) do

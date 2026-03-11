@@ -15,6 +15,7 @@ const CONF = {
   leftPad: 14,
   font: "12px 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   monoFont: "11px 'SF Mono', 'Cascadia Code', 'JetBrains Mono', ui-monospace, monospace",
+  tagFont: "10px 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   bg: "#0e0d0b",
   textColor: "#e8e4de",
   dimColor: "#5a5448",
@@ -279,7 +280,7 @@ function render(canvas, data, hoverRow, selectedRow) {
       ctx.fill()
       ctx.fillStyle = CONF.agentColor
       ctx.globalAlpha = 0.6
-      ctx.font = "10px " + CONF.font.split(",").slice(0).join(",")
+      ctx.font = CONF.tagFont
       ctx.fillText(tag, tx + 3, y + 3)
       ctx.globalAlpha = 1.0
       ctx.font = CONF.font
@@ -327,9 +328,7 @@ function getRowFromY(y, data) {
 
 function getCanvasY(canvas, clientY) {
   const rect = canvas.getBoundingClientRect()
-  const scrollParent = canvas.closest(".valkka-scroll")
-  const scrollTop = scrollParent ? scrollParent.scrollTop : 0
-  return clientY - rect.top + scrollTop
+  return clientY - rect.top
 }
 
 const GraphHook = {

@@ -16,18 +16,14 @@ defmodule ValkkaWeb.ActivityComponent do
       <div
         :for={entry <- @entries}
         class={"valkka-activity-entry type-#{entry.type} #{agent_class(entry)} #{if !entry.collapsed, do: "expanded"}"}
-        phx-click="toggle_activity_entry"
-        phx-value-id={entry.id}
       >
-        <div class="valkka-activity-entry-header">
+        <div
+          class="valkka-activity-entry-header"
+          phx-click="toggle_activity_entry"
+          phx-value-id={entry.id}
+        >
           <span class="valkka-activity-icon">{type_icon(entry.type)}</span>
-          <span
-            class="valkka-activity-repo"
-            phx-click="activity_select_repo"
-            phx-value-path={entry.repo_path}
-          >
-            {entry.repo}
-          </span>
+          <span class="valkka-activity-repo">{entry.repo}</span>
           <span class="valkka-activity-summary">{entry.summary}</span>
           <span class="valkka-activity-time">{format_time(entry.timestamp)}</span>
         </div>
@@ -103,8 +99,13 @@ defmodule ValkkaWeb.ActivityComponent do
     end
   end
 
-  defp entry_subtitle(%{type: :branch_switched, detail: detail}) do
-    "#{detail[:from]} → #{detail[:to]}"
+  defp entry_subtitle(%{type: :branch_switched, detail: %{from: from, to: to}})
+       when is_binary(from) and is_binary(to) do
+    "#{from} → #{to}"
+  end
+
+  defp entry_subtitle(%{type: :branch_switched, detail: %{to: to}}) when is_binary(to) do
+    "→ #{to}"
   end
 
   defp entry_subtitle(%{type: type, detail: detail}) when type in [:pushed, :pulled] do

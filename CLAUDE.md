@@ -77,4 +77,4 @@ Configured in `config/dev.exs`: `workspace_roots` (list of paths, supports `~/`)
 - `docs/` — do not modify without asking
 - CSS uses custom properties in `assets/css/app.css`, all classes use `.valkka-` prefix
 - Port 4420 in dev, 4421 in test
-- System font stack (no external font loading)
+- Inter via Google Fonts for UI, system monospace stack for code

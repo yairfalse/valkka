@@ -58,14 +58,25 @@ defmodule Valkka.Git.CLI do
   @doc "Get files changed in a specific commit."
   @spec commit_files(String.t(), String.t()) :: {:ok, [map()]} | {:error, term()}
   def commit_files(repo_path, oid) do
-    args = ["diff-tree", "--no-commit-id", "-r", "--name-status", oid]
+    if valid_oid?(oid) do
+      args = ["diff-tree", "--no-commit-id", "-r", "--name-status", oid]
 
-    case run(repo_path, args) do
-      {:ok, ""} -> {:ok, []}
-      {:ok, output} -> {:ok, parse_commit_files(output)}
-      {:error, _} = err -> err
+      case run(repo_path, args) do
+        {:ok, ""} -> {:ok, []}
+        {:ok, output} -> {:ok, parse_commit_files(output)}
+        {:error, _} = err -> err
+      end
+    else
+      {:error, {"invalid oid format", 1}}
     end
   end
+
+  defp valid_oid?(oid) when is_binary(oid) do
+    byte_size(oid) >= 4 and byte_size(oid) <= 40 and
+      Regex.match?(~r/\A[0-9a-f]+\z/, oid)
+  end
+
+  defp valid_oid?(_), do: false
 
   @doc "Get configured user name and email."
   @spec user_config(String.t()) :: {String.t(), String.t()}
