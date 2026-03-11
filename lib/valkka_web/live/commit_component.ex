@@ -7,7 +7,16 @@ defmodule ValkkaWeb.CommitComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, assign(socket, message: "", committing: false, pushing: false, result: nil, branching: false, branch_name: "")}
+    {:ok,
+     assign(socket,
+       message: "",
+       committing: false,
+       pushing: false,
+       pulling: false,
+       result: nil,
+       branching: false,
+       branch_name: ""
+     )}
   end
 
   @impl true
@@ -20,6 +29,14 @@ defmodule ValkkaWeb.CommitComponent do
       {:ok, socket}
     else
       {:ok, do_push(socket)}
+    end
+  end
+
+  def update(%{action: :pull}, socket) do
+    if socket.assigns.pulling do
+      {:ok, socket}
+    else
+      {:ok, do_pull(socket)}
     end
   end
 
@@ -59,6 +76,16 @@ defmodule ValkkaWeb.CommitComponent do
           </button>
           <button
             type="button"
+            class="valkka-btn default"
+            phx-click="pull"
+            phx-target={@myself}
+            disabled={@pulling}
+            data-confirm="Pull from origin (ff-only)?"
+          >
+            {if @pulling, do: "Pulling...", else: "Pull"}
+          </button>
+          <button
+            type="button"
             class="valkka-btn ghost"
             phx-click="toggle_branch"
             phx-target={@myself}
@@ -68,7 +95,12 @@ defmodule ValkkaWeb.CommitComponent do
         </div>
       </form>
 
-      <form :if={@branching} phx-submit="create_branch" phx-target={@myself} class="valkka-branch-form">
+      <form
+        :if={@branching}
+        phx-submit="create_branch"
+        phx-target={@myself}
+        class="valkka-branch-form"
+      >
         <input
           type="text"
           name="name"
@@ -78,7 +110,9 @@ defmodule ValkkaWeb.CommitComponent do
           autofocus
         />
         <button type="submit" class="valkka-btn primary">Create</button>
-        <button type="button" class="valkka-btn ghost" phx-click="toggle_branch" phx-target={@myself}>Cancel</button>
+        <button type="button" class="valkka-btn ghost" phx-click="toggle_branch" phx-target={@myself}>
+          Cancel
+        </button>
       </form>
       <div
         :if={@result}
@@ -117,13 +151,20 @@ defmodule ValkkaWeb.CommitComponent do
           send(self(), {:flash, :error, "Commit failed: #{inspect(reason)}"})
 
           {:noreply,
-           assign(socket, committing: false, result: {:error, "Commit failed: #{inspect(reason)}"})}
+           assign(socket,
+             committing: false,
+             result: {:error, "Commit failed: #{inspect(reason)}"}
+           )}
       end
     end
   end
 
   def handle_event("push", _params, socket) do
     {:noreply, do_push(socket)}
+  end
+
+  def handle_event("pull", _params, socket) do
+    {:noreply, do_pull(socket)}
   end
 
   def handle_event("toggle_branch", _params, socket) do
@@ -140,7 +181,9 @@ defmodule ValkkaWeb.CommitComponent do
         {:ok, _} ->
           send(self(), {:refresh_changes, socket.assigns.repo_path})
           send(self(), {:flash, :info, "Switched to #{name}"})
-          {:noreply, assign(socket, branching: false, branch_name: "", result: {:ok, "Branch #{name}"})}
+
+          {:noreply,
+           assign(socket, branching: false, branch_name: "", result: {:ok, "Branch #{name}"})}
 
         {:error, reason} ->
           send(self(), {:flash, :error, "Branch failed: #{inspect(reason)}"})
@@ -165,6 +208,25 @@ defmodule ValkkaWeb.CommitComponent do
       {:error, reason} ->
         send(self(), {:flash, :error, "Push failed: #{inspect(reason)}"})
         assign(socket, pushing: false, result: {:error, "Push failed: #{inspect(reason)}"})
+    end
+  end
+
+  defp do_pull(socket) do
+    socket = assign(socket, pulling: true, result: nil)
+
+    case Valkka.Repo.Worker.pull(socket.assigns.repo_path) do
+      {:ok, _} ->
+        send(self(), {:pull_completed, socket.assigns.repo_path})
+        send(self(), {:flash, :info, "Pulled from origin"})
+        assign(socket, pulling: false, result: {:ok, "Pulled"})
+
+      {:error, {msg, _}} ->
+        send(self(), {:flash, :error, "Pull failed: #{msg}"})
+        assign(socket, pulling: false, result: {:error, "Pull failed: #{msg}"})
+
+      {:error, reason} ->
+        send(self(), {:flash, :error, "Pull failed: #{inspect(reason)}"})
+        assign(socket, pulling: false, result: {:error, "Pull failed: #{inspect(reason)}"})
     end
   end
 end

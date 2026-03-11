@@ -70,7 +70,13 @@ defmodule Valkka.Plugin.Registry do
   defp index_plugins(plugins) do
     :ets.insert(@table, {:plugins, plugins})
 
-    for capability <- [:context_provider, :event_consumer, :action_provider, :panel_provider, :agent_detector] do
+    for capability <- [
+          :context_provider,
+          :event_consumer,
+          :action_provider,
+          :panel_provider,
+          :agent_detector
+        ] do
       matching = Enum.filter(plugins, fn mod -> capability in mod.capabilities() end)
       :ets.insert(@table, {{:capability, capability}, matching})
     end

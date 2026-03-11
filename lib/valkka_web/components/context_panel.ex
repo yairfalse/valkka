@@ -1,7 +1,7 @@
 defmodule ValkkaWeb.Components.ContextPanel do
   @moduledoc """
-  Right panel: Activity stream + Agents tabs.
-  Replaces the old context-provider panel.
+  Right panel: Activity stream + Agents tab.
+  Agents tab provides quick glance at active agent sessions.
   """
 
   use Phoenix.Component
@@ -29,13 +29,11 @@ defmodule ValkkaWeb.Components.ContextPanel do
           Agents
         </button>
       </div>
-      <div class="valkka-rp-body">
-        <div :if={@active_rp_tab == "activity"}>
-          {render_slot(@activity)}
-        </div>
-        <div :if={@active_rp_tab == "agents"} style="padding:8px 0">
-          {render_slot(@agents)}
-        </div>
+      <div :if={@active_rp_tab == "activity"} class="valkka-rp-body">
+        {render_slot(@activity)}
+      </div>
+      <div :if={@active_rp_tab == "agents"} class="valkka-rp-body" style="padding:8px 0">
+        {render_slot(@agents)}
       </div>
     </aside>
     """

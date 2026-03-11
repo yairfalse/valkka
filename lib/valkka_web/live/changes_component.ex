@@ -18,13 +18,19 @@ defmodule ValkkaWeb.ChangesComponent do
        selected_file: nil,
        selected_section: nil,
        diff: nil,
-       loading: true
+       loading: true,
+       active_agent: nil
      )}
   end
 
   @impl true
   def update(%{repo_path: path, handle: handle} = assigns, socket) do
-    socket = assign(socket, repo_path: path, handle: handle)
+    agents = assigns[:agents] || []
+    active_agent = Enum.find(agents, fn a -> a.active && a.repo_path == path end)
+
+    socket =
+      socket
+      |> assign(repo_path: path, handle: handle, active_agent: active_agent)
 
     socket =
       if socket.assigns.loading || assigns[:force_refresh] do
@@ -91,59 +97,73 @@ defmodule ValkkaWeb.ChangesComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="valkka-changes">
-      <div class="valkka-file-lists">
-        <.file_section
-          title="Staged"
-          files={@staged}
-          section="staged"
-          action="unstage"
-          action_label="u"
-          selected_file={@selected_file}
-          selected_section={@selected_section}
-          myself={@myself}
-        />
-        <.file_section
-          title="Unstaged"
-          files={@unstaged}
-          section="unstaged"
-          action="stage"
-          action_label="s"
-          discardable={true}
-          selected_file={@selected_file}
-          selected_section={@selected_section}
-          myself={@myself}
-        />
-        <.file_section
-          title="Untracked"
-          files={@untracked}
-          section="untracked"
-          action="stage"
-          action_label="s"
-          selected_file={@selected_file}
-          selected_section={@selected_section}
-          myself={@myself}
-        />
+    <div class="valkka-changes-split">
+      <div class="valkka-changes-left">
+        <div class="valkka-file-lists">
+          <.file_section
+            title="Staged"
+            files={@staged}
+            section="staged"
+            action="unstage"
+            action_label="u"
+            selected_file={@selected_file}
+            selected_section={@selected_section}
+            active_agent={@active_agent}
+            myself={@myself}
+          />
+          <.file_section
+            title="Unstaged"
+            files={@unstaged}
+            section="unstaged"
+            action="stage"
+            action_label="s"
+            discardable={true}
+            selected_file={@selected_file}
+            selected_section={@selected_section}
+            active_agent={@active_agent}
+            myself={@myself}
+          />
+          <.file_section
+            title="Untracked"
+            files={@untracked}
+            section="untracked"
+            action="stage"
+            action_label="s"
+            selected_file={@selected_file}
+            selected_section={@selected_section}
+            active_agent={@active_agent}
+            myself={@myself}
+          />
+          <div
+            :if={@staged == [] && @unstaged == [] && @untracked == []}
+            class="valkka-empty"
+          >
+            Working tree clean
+          </div>
+        </div>
+
         <div
-          :if={@staged == [] && @unstaged == [] && @untracked == []}
-          class="valkka-empty"
+          :if={@staged != []}
+          class="valkka-commit-bar"
+          style="flex-direction:column;height:auto;padding:8px 12px"
         >
-          Working tree clean
+          <.live_component
+            module={ValkkaWeb.CommitComponent}
+            id="commit-form"
+            repo_path={@repo_path}
+            handle={@handle}
+            has_staged={@staged != []}
+          />
         </div>
       </div>
 
-      <div :if={@staged != []} class="valkka-commit-bar" style="flex-direction:column;height:auto;padding:8px 12px">
-        <.live_component
-          module={ValkkaWeb.CommitComponent}
-          id="commit-form"
-          repo_path={@repo_path}
-          handle={@handle}
-          has_staged={@staged != []}
-        />
-      </div>
-
-      <div :if={@diff} class="valkka-diff-area">
-        <.diff_viewer diff={@diff} />
+      <div class="valkka-changes-right">
+        <div :if={@diff} class="valkka-diff-area">
+          <.diff_viewer diff={@diff} />
+        </div>
+        <div :if={!@diff} class="valkka-empty" style="padding-top:40px">
+          Click a file to view its diff
+        </div>
       </div>
     </div>
     """
@@ -157,16 +177,19 @@ defmodule ValkkaWeb.ChangesComponent do
   attr :selected_file, :string, default: nil
   attr :selected_section, :string, default: nil
   attr :discardable, :boolean, default: false
+  attr :active_agent, :any, default: nil
   attr :myself, :any, required: true
 
   defp file_section(assigns) do
     ~H"""
     <div :if={@files != []} class="valkka-changes-section">
       <div class="valkka-section">
-        <div class="valkka-section-label">{@title} <span class="valkka-section-count">{length(@files)}</span></div>
+        <div class="valkka-section-label">
+          {@title} <span class="valkka-section-count">{length(@files)}</span>
+        </div>
         <button
           class="valkka-btn ghost"
-          style="font-size:11px;height:22px"
+          style="font-size:11px;height:20px"
           phx-click={"#{@action}_all"}
           phx-value-section={@section}
           phx-target={@myself}
@@ -186,6 +209,7 @@ defmodule ValkkaWeb.ChangesComponent do
           {status_letter(file["status"])}
         </span>
         <span class="valkka-file-name">{split_dir_name(file["path"])}</span>
+        <span :if={@active_agent} class="valkka-file-tag agent">{@active_agent.name}</span>
         <button
           :if={@discardable}
           class="valkka-btn danger valkka-file-action"

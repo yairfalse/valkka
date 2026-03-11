@@ -15,9 +15,9 @@ const KeyboardHook = {
       // Skip if any modifier is held (except shift)
       if (e.metaKey || e.ctrlKey || e.altKey) return
 
-      // Number keys 1-3: switch center tabs
-      const tabs = ["graph", "changes", "diff"]
-      if (e.key >= "1" && e.key <= "3") {
+      // Number keys 1-2: switch center tabs
+      const tabs = ["graph", "changes"]
+      if (e.key >= "1" && e.key <= "2") {
         e.preventDefault()
         this.pushEvent("switch_tab", { tab: tabs[parseInt(e.key) - 1] })
         return
@@ -39,6 +39,10 @@ const KeyboardHook = {
         case "p":
           e.preventDefault()
           this.pushEvent("key:push", {})
+          break
+        case "l":
+          e.preventDefault()
+          this.pushEvent("key:pull", {})
           break
         case "a":
           e.preventDefault()
@@ -65,6 +69,12 @@ const KeyboardHook = {
     this.handleEvent("confirm-push", () => {
       if (confirm("Push to origin?")) {
         this.pushEvent("key:push", { confirmed: true })
+      }
+    })
+
+    this.handleEvent("confirm-pull", () => {
+      if (confirm("Pull from origin (fast-forward only)?")) {
+        this.pushEvent("key:pull", { confirmed: true })
       }
     })
 

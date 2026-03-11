@@ -106,6 +106,7 @@ defmodule Valkka.Repo.Worker do
   def stage_all(path), do: operate(path, :stage_all)
   def commit(path, message), do: operate(path, :commit, %{message: message})
   def push(path), do: operate(path, :push)
+  def pull(path), do: operate(path, :pull)
   def discard_file(path, file), do: operate(path, :discard_file, %{file: file})
   def create_branch(path, name), do: operate(path, :create_branch, %{name: name})
 
@@ -310,6 +311,10 @@ defmodule Valkka.Repo.Worker do
 
   defp execute_operation(:push, _args, data) do
     Valkka.Git.CLI.push(data.path)
+  end
+
+  defp execute_operation(:pull, _args, data) do
+    Valkka.Git.CLI.pull(data.path)
   end
 
   defp execute_operation(:discard_file, %{file: file}, data) do

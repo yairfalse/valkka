@@ -1,7 +1,7 @@
 defmodule ValkkaWeb.OverviewComponent do
   @moduledoc """
-  Overview view: flat list of all repos grouped by status.
-  Agent-active repos first, then changed, then clean.
+  Overview / command center: shows agent activity prominently,
+  then repos grouped by status.
   """
 
   use ValkkaWeb, :live_component
@@ -11,17 +11,22 @@ defmodule ValkkaWeb.OverviewComponent do
     repos = assigns.repos
     agents = assigns.agents
 
+    active_agents = Enum.filter(agents, & &1.active)
+
     agent_paths =
-      agents
-      |> Enum.filter(& &1.active)
+      active_agents
       |> Enum.map(& &1.repo_path)
       |> MapSet.new()
+
+    agent_by_repo = Map.new(active_agents, fn a -> {a.repo_path, a} end)
 
     {agent_repos, rest} = Enum.split_with(repos, &MapSet.member?(agent_paths, &1.path))
     {dirty_repos, clean_repos} = Enum.split_with(rest, &(Map.get(&1, :dirty_count, 0) > 0))
 
     {:ok,
      assign(socket,
+       active_agents: active_agents,
+       agent_by_repo: agent_by_repo,
        agent_repos: Enum.sort_by(agent_repos, & &1.name),
        dirty_repos: Enum.sort_by(dirty_repos, & &1.name),
        clean_repos: Enum.sort_by(clean_repos, & &1.name),
@@ -33,9 +38,33 @@ defmodule ValkkaWeb.OverviewComponent do
   def render(assigns) do
     ~H"""
     <div class="valkka-overview">
-      <div class="valkka-ov-heading">All repos · False Systems</div>
+      <%!-- Agent banner when agents are active --%>
+      <div :if={@active_agents != []} class="valkka-agent-banner">
+        <div class="valkka-agent-banner-icon">
+          <span class="valkka-pulse"></span>
+        </div>
+        <div class="valkka-agent-banner-text">
+          <span class="valkka-agent-banner-count">
+            {length(@active_agents)} {if length(@active_agents) == 1, do: "agent", else: "agents"} working
+          </span>
+          <span class="valkka-agent-banner-repos">
+            {Enum.map_join(@active_agents, " · ", fn a ->
+              "#{a.name} on #{repo_name(a, @agent_repos)}"
+            end)}
+          </span>
+        </div>
+      </div>
 
-      <div :for={repo <- @agent_repos}
+      <div class="valkka-ov-heading">
+        {@total} repos
+        <span :if={length(@dirty_repos) > 0} style="color:var(--amber);margin-left:8px">
+          {"#{length(@dirty_repos)} with changes"}
+        </span>
+      </div>
+
+      <%!-- Agent-active repos with prominent display --%>
+      <div
+        :for={repo <- @agent_repos}
         class="valkka-ov-row agent-active"
         phx-click="select_repo"
         phx-value-path={repo.path}
@@ -43,13 +72,16 @@ defmodule ValkkaWeb.OverviewComponent do
         <span class="valkka-ov-dot agent"></span>
         <span class="valkka-ov-name">{repo.name}</span>
         <span class="valkka-ov-branch">{"⎇ #{repo[:branch] || "—"}"}</span>
-        <span class="valkka-ov-status agent-s">{"agent · #{Map.get(repo, :dirty_count, 0)} changes"}</span>
+        <span class="valkka-ov-status agent-s">
+          {agent_status_text(repo, @agent_by_repo)}
+        </span>
         <span class="valkka-ov-when">now</span>
       </div>
 
       <div :if={@dirty_repos != []} class="valkka-ov-sep">Changes</div>
 
-      <div :for={repo <- @dirty_repos}
+      <div
+        :for={repo <- @dirty_repos}
         class="valkka-ov-row"
         phx-click="select_repo"
         phx-value-path={repo.path}
@@ -63,7 +95,8 @@ defmodule ValkkaWeb.OverviewComponent do
 
       <div :if={@clean_repos != []} class="valkka-ov-sep">Clean</div>
 
-      <div :for={repo <- @clean_repos}
+      <div
+        :for={repo <- @clean_repos}
         class="valkka-ov-row"
         phx-click="select_repo"
         phx-value-path={repo.path}
@@ -78,5 +111,22 @@ defmodule ValkkaWeb.OverviewComponent do
       <div :if={@total == 0} class="valkka-empty">No repos monitored</div>
     </div>
     """
+  end
+
+  defp agent_status_text(repo, agent_by_repo) do
+    agent = Map.get(agent_by_repo, repo.path)
+    name = if agent, do: agent.name, else: "agent"
+    dirty = Map.get(repo, :dirty_count, 0)
+
+    if dirty > 0 do
+      "#{name} · #{dirty} changes"
+    else
+      "#{name} working"
+    end
+  end
+
+  defp repo_name(agent, repos) do
+    repo = Enum.find(repos, &(&1.path == agent.repo_path))
+    if repo, do: repo.name, else: Path.basename(agent.repo_path || "unknown")
   end
 end

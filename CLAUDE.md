@@ -30,7 +30,7 @@ Command center for AI coding agents. Elixir/Phoenix LiveView + Rust NIFs (libgit
 ### Dual git interface
 
 - **NIF** (`lib/valkka/git/native.ex` ↔ `native/valkka_git/`) — fast read operations (status, head info, diff, stage/unstage, commit). All NIFs use dirty CPU scheduler. Returns complex data as JSON strings decoded with Jason, simple values as atoms/tuples.
-- **CLI** (`lib/valkka/git/cli.ex`) — operations NIFs don't cover: push, branch creation/checkout, log parsing, user config lookup. Shells out to `git` via `System.cmd/3`.
+- **CLI** (`lib/valkka/git/cli.ex`) — operations NIFs don't cover: push, pull (`--ff-only`), branch creation/checkout, log parsing, user config lookup. Shells out to `git` via `System.cmd/3`.
 
 ### NIF handle lifecycle
 
@@ -50,11 +50,22 @@ Behaviour-based, config-activated (`config :valkka, plugins: [...]`), zero requi
 
 ### Activity (`lib/valkka/activity.ex`)
 
-Pure-function module (no process). DashboardLive holds activity state and buffer. File changes are debounced with a 2-second window before being flushed to activity entries. State changes (branch switch, commit, dirty count transitions) are detected by comparing old vs new repo snapshots.
+Pure-function module (no process). DashboardLive holds activity state and buffer. File changes are debounced with a 2-second window before being flushed to activity entries. State changes (branch switch, commit, dirty count transitions) are detected by comparing old vs new repo snapshots. Entry types: `:files_changed`, `:commit`, `:branch_switched`, `:repo_status`, `:pushed`, `:pulled`, `:agent_started`, `:agent_stopped`.
 
 ### LiveView (`lib/valkka_web/live/`)
 
-Single `DashboardLive` page with three panels. Views: `overview`, `agents`, `repo` (with tabs: graph, changes, diff). JS hooks in `assets/js/hooks/` for keyboard shortcuts (`KeyboardHook`) and canvas graph rendering (`GraphHook`). Component communication uses `send_update/2` for parent→child and `send(self(), msg)` for child→parent.
+Single `DashboardLive` page with three-panel layout. Views: `overview`, `agents`, `repo`. Repo view has two tabs: Graph (canvas via `GraphHook`) and Changes (split layout: file list left, inline diff right).
+
+Key components:
+- `ChangesComponent` — file list + inline diff viewer, split layout
+- `CommitComponent` — commit form, push/pull buttons with confirmation
+- `ActivityComponent` — expandable activity entries, click to show details
+
+Component communication: `send_update/2` for parent→child, `send(self(), msg)` for child→parent. Keyboard shortcuts go through `KeyboardHook` → DashboardLive event → `send_update` to target component.
+
+### Keyboard shortcuts
+
+`s` stage, `u` unstage, `a` stage all, `c` focus commit, `p` push, `l` pull, `d` discard, `b` branch, `1`/`2` switch tabs, `Cmd+1-9` select repo.
 
 ### Workspace config
 
@@ -64,5 +75,6 @@ Configured in `config/dev.exs`: `workspace_roots` (list of paths, supports `~/`)
 
 - Minimal deps — prefer stdlib over libraries
 - `docs/` — do not modify without asking
-- CSS classes use `.valkka-` prefix
+- CSS uses custom properties in `assets/css/app.css`, all classes use `.valkka-` prefix
 - Port 4420 in dev, 4421 in test
+- Inter via Google Fonts for UI, system monospace stack for code
