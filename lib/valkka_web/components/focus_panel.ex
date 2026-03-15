@@ -58,23 +58,6 @@ defmodule ValkkaWeb.Components.FocusPanel do
         >
           {"◇ #{@selected_repo.dirty_count}"}
         </span>
-
-        <span class="valkka-spacer"></span>
-
-        <button
-          class="valkka-btn primary"
-          phx-click="key:focus_commit"
-          title="Focus commit message (c)"
-        >
-          Commit
-        </button>
-        <button class="valkka-btn default" phx-click="key:push" title="Push to origin (p)">
-          Push
-        </button>
-        <button class="valkka-btn default" phx-click="key:pull" title="Pull ff-only (l)">Pull</button>
-        <button class="valkka-btn ghost" phx-click="key:toggle_branch" title="New branch (b)">
-          Branch
-        </button>
       </div>
 
       <div :if={@selected_repo} class="valkka-tab-bar">

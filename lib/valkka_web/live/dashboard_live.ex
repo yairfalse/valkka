@@ -2,9 +2,9 @@ defmodule ValkkaWeb.DashboardLive do
   @moduledoc """
   Main surface — three-panel layout for multi-repo awareness.
 
-  Left: sidebar with workspace header, nav, repo list
-  Center: focused repo view (graph/changes/diff tabs) or overview/agents view
-  Right: activity stream + agents panel
+  Left: sidebar with workspace header, priority-sorted repo sections
+  Center: command view (workstream cards) or focus view (graph/changes)
+  Right: timeline with activity stream + optional repo filter
   """
 
   use ValkkaWeb, :live_view
@@ -52,7 +52,9 @@ defmodule ValkkaWeb.DashboardLive do
        agents: agents,
        agent_summary: Valkka.Status.agent_summary(agents),
        agent_start_times: %{},
-       agent_tick_ref: nil
+       agent_tick_ref: nil,
+       timeline_filter: :all,
+       sidebar_quiet_expanded: false
      )}
   end
 
@@ -77,16 +79,20 @@ defmodule ValkkaWeb.DashboardLive do
         repos={@repos}
         selected_path={@selected_path}
         active_view={@active_view}
-        agent_count={@agent_summary.active}
+        agents={@agents}
+        agent_start_times={@agent_start_times}
+        sidebar_quiet_expanded={@sidebar_quiet_expanded}
       />
 
       <div class="valkka-center" style="display:flex;flex-direction:column;overflow:hidden">
         <%= if @active_view == "overview" do %>
           <.live_component
-            module={ValkkaWeb.OverviewComponent}
-            id="overview"
+            module={ValkkaWeb.CommandComponent}
+            id="command"
             repos={@repos}
             agents={@agents}
+            agent_start_times={@agent_start_times}
+            activity={@activity}
           />
         <% end %>
 
@@ -134,12 +140,17 @@ defmodule ValkkaWeb.DashboardLive do
         <% end %>
       </div>
 
-      <.context_panel>
+      <.context_panel
+        timeline_filter={@timeline_filter}
+        has_focused_repo={@selected_path != nil}
+      >
         <:activity>
           <.live_component
             module={ValkkaWeb.ActivityComponent}
             id="activity"
             entries={@activity}
+            filter_mode={@timeline_filter}
+            focused_repo_path={@selected_path}
           />
         </:activity>
       </.context_panel>
@@ -233,6 +244,20 @@ defmodule ValkkaWeb.DashboardLive do
     end
   end
 
+  def handle_event("key:escape", _params, socket) do
+    socket =
+      socket
+      |> assign(
+        active_view: "overview",
+        selected_path: nil,
+        selected_repo: nil,
+        handle: nil,
+        timeline_filter: :all
+      )
+
+    {:noreply, push_patch(socket, to: "/")}
+  end
+
   def handle_event("key:stage_focused", _params, socket) do
     send_update(ValkkaWeb.ChangesComponent, id: "changes", action: :stage_focused)
     {:noreply, socket}
@@ -284,6 +309,15 @@ defmodule ValkkaWeb.DashboardLive do
     {:noreply, push_event(socket, "confirm-pull", %{})}
   end
 
+  def handle_event("toggle_timeline_filter", %{"mode" => mode}, socket) do
+    filter = if mode == "focused", do: :focused, else: :all
+    {:noreply, assign(socket, timeline_filter: filter)}
+  end
+
+  def handle_event("toggle_sidebar_quiet", _params, socket) do
+    {:noreply, assign(socket, sidebar_quiet_expanded: !socket.assigns.sidebar_quiet_expanded)}
+  end
+
   # ── Info handlers ───────────────────────────────────────────
 
   @impl true
@@ -307,7 +341,6 @@ defmodule ValkkaWeb.DashboardLive do
   end
 
   def handle_info({:file_selected, _file_path, _repo_path}, socket) do
-    # Stay on changes tab when a file is selected
     {:noreply, socket}
   end
 

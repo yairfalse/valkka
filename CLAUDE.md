@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is Valkka
 
-Command center for AI coding agents. Elixir/Phoenix LiveView + Rust NIFs (libgit2) + optional Tauri desktop shell. No database — git repos + ETS caches. OTP app `:valkka`, module prefix `Valkka`.
+Context delivery for humans who supervise AI coding agents. One screen to see what 10-12 agents are doing across multiple repos — files changing, processes running, what needs attention. The human doesn't operate Valkka; Valkka delivers context to the human. Elixir/Phoenix LiveView + Rust NIFs (libgit2) + optional Tauri desktop shell. No database — git repos + ETS caches. OTP app `:valkka`, module prefix `Valkka`.
 
 ## Commands
 
@@ -54,7 +54,7 @@ Pure-function module (no process). DashboardLive holds activity state and buffer
 
 ### LiveView (`lib/valkka_web/live/`)
 
-Single `DashboardLive` page with three-panel layout. Views: `overview`, `agents`, `repo`. Repo view has two tabs: Graph (canvas via `GraphHook`) and Changes (split layout: file list left, inline diff right).
+Single `DashboardLive` page with three-panel layout. Views: `overview`, `repo`. Repo view has two tabs: Graph (canvas via `GraphHook`) and Changes (split layout: file list left, inline diff right). Right panel is a pure activity stream — no tabs.
 
 Key components:
 - `ChangesComponent` — file list + inline diff viewer, split layout

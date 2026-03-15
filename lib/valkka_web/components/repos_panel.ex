@@ -1,6 +1,11 @@
 defmodule ValkkaWeb.Components.ReposPanel do
   @moduledoc """
-  Left sidebar: workspace header, top-level nav, repo list, footer.
+  Left sidebar: workspace header, priority-sorted repo sections.
+
+  Sections:
+  1. Workstreams — repos with active agents (pulse dot)
+  2. Attention — dirty/ahead/error repos without agents (amber/blue/red dots)
+  3. Quiet — everything else, collapsed to a count with expand toggle
   """
 
   use Phoenix.Component
@@ -8,9 +13,37 @@ defmodule ValkkaWeb.Components.ReposPanel do
   attr :repos, :list, required: true
   attr :selected_path, :string, default: nil
   attr :active_view, :string, default: "repo"
-  attr :agent_count, :integer, default: 0
+  attr :agents, :list, default: []
+  attr :agent_start_times, :map, default: %{}
+  attr :sidebar_quiet_expanded, :boolean, default: false
 
   def repos_panel(assigns) do
+    agent_paths =
+      assigns.agents
+      |> Enum.filter(& &1.active)
+      |> Enum.map(& &1.repo_path)
+      |> MapSet.new()
+
+    {workstream_repos, rest} =
+      Enum.split_with(assigns.repos, &MapSet.member?(agent_paths, &1.path))
+
+    {attention_repos, quiet_repos} =
+      Enum.split_with(rest, fn repo ->
+        Map.get(repo, :status) == :error ||
+          Map.get(repo, :dirty_count, 0) > 0 ||
+          Map.get(repo, :ahead, 0) > 0
+      end)
+
+    agent_count = MapSet.size(agent_paths)
+
+    assigns =
+      assigns
+      |> assign(:workstream_repos, Enum.sort_by(workstream_repos, & &1.name))
+      |> assign(:attention_repos, Enum.sort_by(attention_repos, & &1.name))
+      |> assign(:quiet_repos, Enum.sort_by(quiet_repos, & &1.name))
+      |> assign(:quiet_count, length(quiet_repos))
+      |> assign(:agent_count, agent_count)
+
     ~H"""
     <aside class="valkka-sidebar">
       <div class="valkka-ws">
@@ -55,78 +88,114 @@ defmodule ValkkaWeb.Components.ReposPanel do
             />
           </svg>
         </span>
-        <span class="valkka-nav-label">Overview</span>
+        <span class="valkka-nav-label">Command</span>
       </div>
 
       <div class="valkka-sb-sep"></div>
-      <div class="valkka-sb-label">Repos</div>
 
       <div style="flex: 1; overflow-y: auto;">
+        <%!-- Workstreams section --%>
+        <div :if={@workstream_repos != []} class="valkka-sidebar-section">
+          <span class="valkka-sb-label">Workstreams</span>
+        </div>
+
         <div
-          :for={repo <- @repos}
+          :for={repo <- @workstream_repos}
           class={"valkka-nav #{if @active_view == "repo" && repo.path == @selected_path, do: "active"}"}
           phx-click="select_repo"
           phx-value-path={repo.path}
-          title={repo_tooltip(repo)}
+          title={repo_tooltip(repo, @agents)}
         >
-          <span class={"valkka-dot #{dot_class(repo)}"} />
+          <span class="valkka-dot agent" />
           <span class="valkka-nav-label">{repo.name}</span>
-          <span :if={Map.get(repo, :agent_active, false)} class="valkka-nav-count accent">
-            {Map.get(repo, :dirty_count, 0)}
+          <span class="valkka-nav-count accent">
+            {agent_duration(@agent_start_times, @agents, repo.path)}
           </span>
-          <span
-            :if={!Map.get(repo, :agent_active, false) && Map.get(repo, :dirty_count, 0) > 0}
-            class="valkka-nav-count"
-          >
+          <span :if={Map.get(repo, :dirty_count, 0) > 0} class="valkka-nav-count">
             {repo.dirty_count}
           </span>
         </div>
+
+        <%!-- Attention section --%>
+        <div :if={@attention_repos != []} class="valkka-sidebar-section">
+          <span class="valkka-sb-label">Attention</span>
+        </div>
+
+        <div
+          :for={repo <- @attention_repos}
+          class={"valkka-nav #{if @active_view == "repo" && repo.path == @selected_path, do: "active"}"}
+          phx-click="select_repo"
+          phx-value-path={repo.path}
+          title={repo_tooltip(repo, @agents)}
+        >
+          <span class={"valkka-dot #{attention_dot_class(repo)}"} />
+          <span class="valkka-nav-label">{repo.name}</span>
+          <span :if={Map.get(repo, :dirty_count, 0) > 0} class="valkka-nav-count">
+            {repo.dirty_count}
+          </span>
+        </div>
+
+        <%!-- Quiet section --%>
+        <div :if={@quiet_count > 0} class="valkka-sidebar-section">
+          <span
+            class="valkka-quiet-toggle"
+            phx-click="toggle_sidebar_quiet"
+          >
+            <span class="valkka-quiet-chevron">{if @sidebar_quiet_expanded, do: "▾", else: "▸"}</span>
+            {@quiet_count} quiet
+          </span>
+        </div>
+
+        <div :if={@sidebar_quiet_expanded}>
+          <div
+            :for={repo <- @quiet_repos}
+            class={"valkka-nav #{if @active_view == "repo" && repo.path == @selected_path, do: "active"}"}
+            phx-click="select_repo"
+            phx-value-path={repo.path}
+            title={repo_tooltip(repo, @agents)}
+          >
+            <span class="valkka-dot clean" />
+            <span class="valkka-nav-label">{repo.name}</span>
+          </div>
+        </div>
+
         <div :if={@repos == []} class="valkka-empty">
           Scanning...
-        </div>
-      </div>
-
-      <div class="valkka-sb-footer">
-        <div class="valkka-nav">
-          <span class="valkka-nav-icon">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <rect x=".5" y=".5" width="12" height="12" rx="2" stroke="currentColor" /><path
-                d="M3 4.5l2.5 2.5L3 9.5"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-              /><path d="M7.5 9.5H10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-            </svg>
-          </span>
-          <span class="valkka-nav-label">Terminal</span>
-        </div>
-        <div class="valkka-nav">
-          <span class="valkka-nav-icon">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" /><path
-                d="M6.5 3.5v3l2 2"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-              />
-            </svg>
-          </span>
-          <span class="valkka-nav-label">Settings</span>
         </div>
       </div>
     </aside>
     """
   end
 
-  defp dot_class(%{status: :error}), do: "error"
-  defp dot_class(%{agent_active: true}), do: "agent"
-  defp dot_class(%{dirty_count: n}) when n > 0, do: "dirty"
-  defp dot_class(_), do: "clean"
+  defp attention_dot_class(%{status: :error}), do: "error"
+  defp attention_dot_class(%{ahead: n}) when is_integer(n) and n > 0, do: "ahead"
+  defp attention_dot_class(%{dirty_count: n}) when n > 0, do: "dirty"
+  defp attention_dot_class(_), do: "dirty"
 
-  defp repo_tooltip(repo) do
+  defp agent_duration(start_times, agents, path) do
+    agent = Enum.find(agents, fn a -> a.active && a.repo_path == path end)
+
+    if agent do
+      key = {agent.pid, agent.repo_path}
+
+      case Map.get(start_times, key) do
+        nil -> ""
+        started_at -> format_duration(DateTime.diff(DateTime.utc_now(), started_at, :second))
+      end
+    else
+      ""
+    end
+  end
+
+  defp format_duration(seconds) when seconds < 60, do: "#{seconds}s"
+  defp format_duration(seconds) when seconds < 3600, do: "#{div(seconds, 60)}m"
+  defp format_duration(seconds), do: "#{div(seconds, 3600)}h #{div(rem(seconds, 3600), 60)}m"
+
+  defp repo_tooltip(repo, agents) do
     branch = Map.get(repo, :branch) || "detached"
     dirty = Map.get(repo, :dirty_count, 0)
-    agent = if Map.get(repo, :agent_active, false), do: " · agent active", else: ""
+    agent = Enum.find(agents, fn a -> a.active && a.repo_path == repo.path end)
+    agent_text = if agent, do: " · #{agent.name}", else: ""
 
     status =
       cond do
@@ -135,6 +204,6 @@ defmodule ValkkaWeb.Components.ReposPanel do
         true -> " · clean"
       end
 
-    "#{repo.name} (#{branch}#{status}#{agent})\n#{repo.path}"
+    "#{repo.name} (#{branch}#{status}#{agent_text})\n#{repo.path}"
   end
 end
