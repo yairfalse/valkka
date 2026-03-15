@@ -58,26 +58,6 @@ defmodule ValkkaWeb.Components.ReposPanel do
         <span class="valkka-nav-label">Overview</span>
       </div>
 
-      <div
-        class={"valkka-nav #{if @active_view == "agents", do: "active"}"}
-        phx-click="switch_view"
-        phx-value-view="agents"
-        title="Active and idle AI agents"
-      >
-        <span class="valkka-nav-icon">
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-            <circle cx="6.5" cy="4.5" r="2.2" stroke="currentColor" stroke-width="1.2" /><path
-              d="M1.5 12c0-2.761 2.239-5 5-5s5 2.239 5 5"
-              stroke="currentColor"
-              stroke-width="1.2"
-              stroke-linecap="round"
-            />
-          </svg>
-        </span>
-        <span class="valkka-nav-label">Agents</span>
-        <span :if={@agent_count > 0} class="valkka-nav-count accent">{@agent_count}</span>
-      </div>
-
       <div class="valkka-sb-sep"></div>
       <div class="valkka-sb-label">Repos</div>
 

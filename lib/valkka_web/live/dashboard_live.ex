@@ -52,8 +52,7 @@ defmodule ValkkaWeb.DashboardLive do
        agents: agents,
        agent_summary: Valkka.Status.agent_summary(agents),
        agent_start_times: %{},
-       agent_tick_ref: nil,
-       active_rp_tab: "activity"
+       agent_tick_ref: nil
      )}
   end
 
@@ -88,15 +87,6 @@ defmodule ValkkaWeb.DashboardLive do
             id="overview"
             repos={@repos}
             agents={@agents}
-          />
-        <% end %>
-
-        <%= if @active_view == "agents" do %>
-          <.live_component
-            module={ValkkaWeb.AgentsComponent}
-            id="agents-view"
-            agents={@agents}
-            repos={@repos}
           />
         <% end %>
 
@@ -144,7 +134,7 @@ defmodule ValkkaWeb.DashboardLive do
         <% end %>
       </div>
 
-      <.context_panel active_rp_tab={@active_rp_tab}>
+      <.context_panel>
         <:activity>
           <.live_component
             module={ValkkaWeb.ActivityComponent}
@@ -152,28 +142,6 @@ defmodule ValkkaWeb.DashboardLive do
             entries={@activity}
           />
         </:activity>
-        <:agents>
-          <div
-            :if={Enum.any?(@agents, & &1.active)}
-            style="padding:2px 12px 8px;font-size:11.5px;color:var(--t3)"
-          >
-            {Enum.count(@agents, & &1.active)} running
-          </div>
-          <div :for={agent <- Enum.filter(@agents, & &1.active)} class="valkka-agent-card live">
-            <div class="valkka-agent-card-top">
-              <span class="valkka-agent-card-dot live"></span>
-              <span class="valkka-agent-card-name">
-                {agent.name} · {repo_name_for(agent.repo_path, @repos)}
-              </span>
-              <span class="valkka-agent-card-pid">
-                {agent_elapsed(@agent_start_times, @agents, agent.repo_path) || ""}
-              </span>
-            </div>
-          </div>
-          <div :if={!Enum.any?(@agents, & &1.active)} class="valkka-empty">
-            No active agents
-          </div>
-        </:agents>
       </.context_panel>
     </div>
     """
@@ -197,10 +165,6 @@ defmodule ValkkaWeb.DashboardLive do
       end)
 
     {:noreply, socket}
-  end
-
-  def handle_event("switch_rp_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, active_rp_tab: tab)}
   end
 
   def handle_event("switch_tab", %{"tab" => tab}, socket) do
@@ -626,13 +590,6 @@ defmodule ValkkaWeb.DashboardLive do
   defp format_duration(seconds) when seconds < 60, do: "#{seconds}s"
   defp format_duration(seconds) when seconds < 3600, do: "#{div(seconds, 60)}m"
   defp format_duration(seconds), do: "#{div(seconds, 3600)}h #{div(rem(seconds, 3600), 60)}m"
-
-  defp repo_name_for(path, repos) do
-    case Enum.find(repos, &(&1.path == path)) do
-      nil -> Path.basename(path || "unknown")
-      repo -> repo.name
-    end
-  end
 
   defp valid_repo_path?(path, repos) do
     Enum.any?(repos, &(&1.path == path)) or

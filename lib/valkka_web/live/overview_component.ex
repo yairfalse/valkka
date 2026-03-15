@@ -1,7 +1,7 @@
 defmodule ValkkaWeb.OverviewComponent do
   @moduledoc """
-  Overview / command center: shows agent activity prominently,
-  then repos grouped by status.
+  Overview / command center: agents are the headline,
+  dirty repos are visible, clean repos collapse to a count.
   """
 
   use ValkkaWeb, :live_component
@@ -29,8 +29,7 @@ defmodule ValkkaWeb.OverviewComponent do
        agent_by_repo: agent_by_repo,
        agent_repos: Enum.sort_by(agent_repos, & &1.name),
        dirty_repos: Enum.sort_by(dirty_repos, & &1.name),
-       clean_repos: Enum.sort_by(clean_repos, & &1.name),
-       total: length(repos)
+       clean_count: length(clean_repos)
      )}
   end
 
@@ -55,14 +54,7 @@ defmodule ValkkaWeb.OverviewComponent do
         </div>
       </div>
 
-      <div class="valkka-ov-heading">
-        {@total} repos
-        <span :if={length(@dirty_repos) > 0} style="color:var(--amber);margin-left:8px">
-          {"#{length(@dirty_repos)} with changes"}
-        </span>
-      </div>
-
-      <%!-- Agent-active repos with prominent display --%>
+      <%!-- Agent-active repos — prominent --%>
       <div
         :for={repo <- @agent_repos}
         class="valkka-ov-row agent-active"
@@ -78,6 +70,7 @@ defmodule ValkkaWeb.OverviewComponent do
         <span class="valkka-ov-when">now</span>
       </div>
 
+      <%!-- Dirty repos — visible but quieter --%>
       <div :if={@dirty_repos != []} class="valkka-ov-sep">Changes</div>
 
       <div
@@ -93,22 +86,17 @@ defmodule ValkkaWeb.OverviewComponent do
         <span class="valkka-ov-when"></span>
       </div>
 
-      <div :if={@clean_repos != []} class="valkka-ov-sep">Clean</div>
-
-      <div
-        :for={repo <- @clean_repos}
-        class="valkka-ov-row"
-        phx-click="select_repo"
-        phx-value-path={repo.path}
-      >
-        <span class="valkka-ov-dot clean"></span>
-        <span class="valkka-ov-name">{repo.name}</span>
-        <span class="valkka-ov-branch">{"⎇ #{repo[:branch] || "—"}"}</span>
-        <span class="valkka-ov-status">clean</span>
-        <span class="valkka-ov-when"></span>
+      <%!-- Clean repos collapsed to a single summary --%>
+      <div :if={@clean_count > 0} class="valkka-ov-sep">
+        {@clean_count} clean
       </div>
 
-      <div :if={@total == 0} class="valkka-empty">No repos monitored</div>
+      <div
+        :if={@active_agents == [] && @dirty_repos == [] && @clean_count == 0}
+        class="valkka-empty"
+      >
+        No repos monitored
+      </div>
     </div>
     """
   end

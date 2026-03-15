@@ -108,6 +108,10 @@
   /* Typography */
   --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', ui-monospace, monospace;
+  --fs-xs: 10.5px;
+  --fs-sm: 11.5px;
+  --fs-base: 12.5px;
+  --fs-lg: 14px;
   --r: 32px;
 
   /* Spacing grid (8px base) */
@@ -149,7 +153,7 @@ html, body {
   background: var(--bg);
   color: var(--t1);
   font-family: var(--font);
-  font-size: 12.5px;
+  font-size: var(--fs-base);
   line-height: 1;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -210,21 +214,21 @@ input, textarea { caret-color: #5a68b8; }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: #0e0d0b;
   flex-shrink: 0;
 }
 
 .valkka-ws-name {
-  font-size: 13.5px;
+  font-size: var(--fs-base);
   font-weight: 600;
   color: var(--t1);
   flex: 1;
 }
 
 .valkka-ws-live {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   color: rgba(200,170,100,.45);
   display: flex;
   align-items: center;
@@ -295,7 +299,7 @@ input, textarea { caret-color: #5a68b8; }
 .valkka-nav.active .valkka-nav-icon { opacity: 1; }
 
 .valkka-nav-label {
-  font-size: 13px;
+  font-size: var(--fs-base);
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -303,7 +307,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-nav-count {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   color: var(--t3);
   font-variant-numeric: tabular-nums;
 }
@@ -319,7 +323,7 @@ input, textarea { caret-color: #5a68b8; }
   display: flex;
   align-items: center;
   padding: 0 14px;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--t4);
   letter-spacing: .06em;
@@ -380,9 +384,9 @@ input, textarea { caret-color: #5a68b8; }
   flex-shrink: 0;
 }
 
-.valkka-bc { font-size: 13px; color: var(--t3); }
+.valkka-bc { font-size: var(--fs-base); color: var(--t3); }
 .valkka-bc-sep { color: var(--t4); margin: 0 2px; }
-.valkka-bc-current { font-size: 13px; font-weight: 600; color: var(--t1); }
+.valkka-bc-current { font-size: var(--fs-base); font-weight: 600; color: var(--t1); }
 
 /* Pills */
 .valkka-pill {
@@ -392,7 +396,7 @@ input, textarea { caret-color: #5a68b8; }
   height: 20px;
   padding: 0 7px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   border: 1px solid;
   white-space: nowrap;
@@ -418,7 +422,7 @@ input, textarea { caret-color: #5a68b8; }
 .valkka-agent-timer {
   font-variant-numeric: tabular-nums;
   opacity: 0.6;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   margin-left: 2px;
 }
 
@@ -433,7 +437,7 @@ input, textarea { caret-color: #5a68b8; }
   align-items: center;
   gap: 5px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
   border: 1px solid;
@@ -507,7 +511,7 @@ input, textarea { caret-color: #5a68b8; }
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--fs-base);
   font-family: var(--font);
   color: var(--t3);
   cursor: pointer;
@@ -530,7 +534,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-tab-count {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   padding: 1px 5px;
   border-radius: 999px;
   background: rgba(255,240,220,0.06);
@@ -562,7 +566,7 @@ input, textarea { caret-color: #5a68b8; }
 /* Graph info shown above canvas */
 .valkka-graph-info {
   color: var(--t3);
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   padding: 8px 16px;
 }
 
@@ -580,8 +584,8 @@ input, textarea { caret-color: #5a68b8; }
   flex-shrink: 0;
 }
 
-.valkka-agent-bar-name { font-size: 12.5px; color: var(--amber); opacity: .7; }
-.valkka-agent-bar-time { font-size: 11.5px; color: var(--amber); opacity: .4; margin-left: auto; }
+.valkka-agent-bar-name { font-size: var(--fs-base); color: var(--amber); opacity: .7; }
+.valkka-agent-bar-time { font-size: var(--fs-sm); color: var(--amber); opacity: .4; margin-left: auto; }
 
 /* Section headers */
 .valkka-section {
@@ -598,7 +602,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-section-label {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--t3);
   letter-spacing: .06em;
@@ -609,7 +613,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-section-count {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   padding: 1px 5px;
   border-radius: 999px;
   background: rgba(255,240,220,0.06);
@@ -639,7 +643,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-file-status {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   width: 14px;
   text-align: center;
@@ -653,7 +657,7 @@ input, textarea { caret-color: #5a68b8; }
 .valkka-file-status.renamed { color: var(--purple); }
 
 .valkka-file-name {
-  font-size: 13px;
+  font-size: var(--fs-base);
   color: var(--t1);
   flex: 1;
   padding: 0 12px;
@@ -665,7 +669,7 @@ input, textarea { caret-color: #5a68b8; }
 .valkka-file-name .dir { color: var(--t3); }
 
 .valkka-file-tag {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   padding: 1px 6px;
   border-radius: 999px;
   background: rgba(255,240,220,0.04);
@@ -706,7 +710,7 @@ input, textarea { caret-color: #5a68b8; }
   border-radius: var(--radius-sm);
   padding: 0 10px;
   font-family: var(--font);
-  font-size: 12.5px;
+  font-size: var(--fs-base);
   color: var(--t1);
   outline: none;
   transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
@@ -735,14 +739,14 @@ input, textarea { caret-color: #5a68b8; }
   padding: 0 16px;
   border-bottom: 1px solid var(--b);
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--t1);
 }
 
-.valkka-diff-add  { font-size: 12px; color: var(--green); }
-.valkka-diff-del  { font-size: 12px; color: var(--red); }
-.valkka-diff-tag  { font-size: 11px; color: var(--t3); margin-left: auto; }
+.valkka-diff-add  { font-size: var(--fs-sm); color: var(--green); }
+.valkka-diff-del  { font-size: var(--fs-sm); color: var(--red); }
+.valkka-diff-tag  { font-size: var(--fs-sm); color: var(--t3); margin-left: auto; }
 
 .valkka-hunk { border-bottom: 1px solid var(--b); }
 .valkka-hunk:last-child { border-bottom: none; }
@@ -750,7 +754,7 @@ input, textarea { caret-color: #5a68b8; }
 .valkka-hunk-header {
   padding: 4px 16px;
   background: rgba(200,160,80,.04);
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-family: var(--mono);
   color: rgba(200,160,80,.5);
   font-style: italic;
@@ -758,7 +762,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-hunk-lines {
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-family: var(--mono);
   line-height: 20px;
 }
@@ -779,7 +783,7 @@ input, textarea { caret-color: #5a68b8; }
   padding-right: 10px;
   user-select: none;
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--fs-sm);
 }
 
 .valkka-lineno + .valkka-lineno {
@@ -824,34 +828,6 @@ input, textarea { caret-color: #5a68b8; }
   flex-direction: column;
 }
 
-.valkka-rp-tabs {
-  height: 36px;
-  display: flex;
-  align-items: stretch;
-  border-bottom: 1px solid var(--b);
-  padding: 0 12px;
-  flex-shrink: 0;
-}
-
-.valkka-rp-tab {
-  display: flex;
-  align-items: center;
-  font-size: 12.5px;
-  color: var(--t3);
-  cursor: pointer;
-  background: none;
-  border: none;
-  border-bottom: 1.5px solid transparent;
-  margin-bottom: -1px;
-  margin-right: 16px;
-  transition: color .1s;
-  font-family: var(--font);
-  padding: 0;
-}
-
-.valkka-rp-tab:hover { color: var(--t2); }
-.valkka-rp-tab.active { color: var(--t1); border-bottom-color: rgba(255,255,255,.24); }
-
 .valkka-rp-body {
   flex: 1;
   overflow-y: auto;
@@ -877,14 +853,9 @@ input, textarea { caret-color: #5a68b8; }
   background: var(--sel);
 }
 
+/* Agent entries get warm gold; everything else stays transparent */
 .valkka-activity-entry.type-agent_started { border-left-color: rgba(200,170,100,.22); }
-.valkka-activity-entry.type-agent_stopped { border-left-color: rgba(255,255,255,.035); }
-.valkka-activity-entry.type-commit { border-left-color: rgba(90,104,238,.32); }
-.valkka-activity-entry.type-files_changed { border-left-color: rgba(78,92,114,.25); }
-.valkka-activity-entry.type-pushed { border-left-color: rgba(90,104,238,.32); }
-.valkka-activity-entry.type-pulled { border-left-color: rgba(90,104,238,.32); }
-.valkka-activity-entry.type-branch_switched { border-left-color: rgba(90,104,238,.32); }
-.valkka-activity-entry.type-repo_status { border-left-color: rgba(255,255,255,.035); }
+.valkka-activity-entry.type-files_changed.agent-attributed { border-left-color: rgba(200,170,100,.22); }
 
 .valkka-activity-entry-header {
   display: flex;
@@ -893,7 +864,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-activity-icon {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   width: 14px;
   text-align: center;
   flex-shrink: 0;
@@ -903,16 +874,11 @@ input, textarea { caret-color: #5a68b8; }
 
 .valkka-activity-entry:hover .valkka-activity-icon { color: var(--t2); }
 
+/* Agent icon = warm gold, everything else inherits default --t3 */
 .valkka-activity-entry.type-agent_started .valkka-activity-icon { color: rgba(190,160,100,.52); }
-.valkka-activity-entry.type-agent_stopped .valkka-activity-icon { color: var(--t4); }
-.valkka-activity-entry.type-files_changed .valkka-activity-icon { color: rgba(78,92,114,.52); }
-.valkka-activity-entry.type-commit .valkka-activity-icon,
-.valkka-activity-entry.type-pushed .valkka-activity-icon { color: rgba(90,104,238,.62); }
-.valkka-activity-entry.type-pulled .valkka-activity-icon { color: rgba(90,104,238,.62); }
-.valkka-activity-entry.type-branch_switched .valkka-activity-icon { color: rgba(90,104,238,.62); }
 
 .valkka-activity-repo {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
@@ -931,7 +897,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-activity-summary {
-  font-size: 12.5px;
+  font-size: var(--fs-base);
   color: var(--t1);
   flex: 1;
   white-space: nowrap;
@@ -940,14 +906,14 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-activity-time {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   color: var(--t3);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
 .valkka-activity-detail {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   color: var(--t2);
   padding-left: 21px;
 }
@@ -958,7 +924,7 @@ input, textarea { caret-color: #5a68b8; }
   color: var(--t3);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   padding: 2px 6px;
   flex-shrink: 0;
   transition: all var(--dur-fast) var(--ease-out);
@@ -978,7 +944,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-activity-file {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   font-weight: 400;
   color: var(--t2);
   padding: 3px 8px;
@@ -992,13 +958,8 @@ input, textarea { caret-color: #5a68b8; }
   color: var(--amber);
 }
 
-/* Agent-attributed file changes get a warm gold accent */
-.valkka-activity-entry.type-files_changed.agent-attributed {
-  border-left-color: rgba(200,170,100,.22);
-}
-
 .valkka-activity-subtitle {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   color: var(--t3);
   padding-left: 21px;
   white-space: nowrap;
@@ -1007,42 +968,6 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-activity-sep { height: 1px; background: var(--b); margin: 2px 0; }
-
-/* Agent cards (right panel Agents tab) */
-.valkka-agent-card {
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 0;
-  border: none;
-  border-left: 2px solid transparent;
-  background: transparent;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out);
-}
-
-.valkka-agent-card:hover { background: var(--hv); }
-.valkka-agent-card:active { background: var(--sel); }
-
-.valkka-agent-card.live {
-  border-left-color: var(--agent);
-  background: var(--agent-dim);
-}
-
-.valkka-agent-card.live:hover { background: rgba(200,170,100,.08); }
-
-.valkka-agent-card-top { display: flex; align-items: center; gap: 8px; }
-.valkka-agent-card-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.valkka-agent-card-dot.live {
-  background: var(--agent);
-  opacity: .78;
-  animation: valkka-pd 2.8s ease-in-out infinite;
-}
-.valkka-agent-card-dot.off { background: var(--t4); }
-.valkka-agent-card-name { font-size: 12.5px; font-weight: 500; color: var(--t1); flex: 1; }
-.valkka-agent-card-pid { font-size: 11px; color: var(--t3); font-variant-numeric: tabular-nums; }
 
 /* ── Overview View ───────────────────────────────────────────── */
 
@@ -1081,13 +1006,13 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-agent-banner-count {
-  font-size: 12.5px;
+  font-size: var(--fs-base);
   font-weight: 600;
   color: var(--agent);
 }
 
 .valkka-agent-banner-repos {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   color: var(--t2);
 }
 
@@ -1096,7 +1021,7 @@ input, textarea { caret-color: #5a68b8; }
   display: flex;
   align-items: center;
   padding: 0 16px;
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--t3);
   letter-spacing: .06em;
@@ -1113,7 +1038,7 @@ input, textarea { caret-color: #5a68b8; }
   display: flex;
   align-items: center;
   padding: 0 16px;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--t4);
   letter-spacing: .06em;
@@ -1155,26 +1080,15 @@ input, textarea { caret-color: #5a68b8; }
 .valkka-ov-dot.dirty { background: var(--amber); opacity: .7; }
 .valkka-ov-dot.clean { background: var(--t4); }
 
-.valkka-ov-name { font-size: 13px; font-weight: 500; color: var(--t1); width: 90px; flex-shrink: 0; }
-.valkka-ov-branch { font-size: 12.5px; color: var(--t3); flex: 1; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.valkka-ov-status { font-size: 12px; color: var(--t2); white-space: nowrap; }
+.valkka-ov-name { font-size: var(--fs-base); font-weight: 500; color: var(--t1); width: 90px; flex-shrink: 0; }
+.valkka-ov-branch { font-size: var(--fs-base); color: var(--t3); flex: 1; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.valkka-ov-status { font-size: var(--fs-sm); color: var(--t2); white-space: nowrap; }
 .valkka-ov-status.agent-s { color: var(--amber); }
 .valkka-ov-status.dirty-s { color: var(--t2); }
-.valkka-ov-when { font-size: 11px; color: var(--t3); margin-left: 16px; width: 58px; text-align: right; flex-shrink: 0; }
-
-@keyframes valkka-shimmer {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+.valkka-ov-when { font-size: var(--fs-sm); color: var(--t3); margin-left: 16px; width: 58px; text-align: right; flex-shrink: 0; }
 
 .valkka-ov-row.agent-active .valkka-ov-name {
-  background: linear-gradient(90deg, #e8e4de 0%, var(--agent) 40%, var(--amber) 80%, #e8e4de 100%);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: valkka-shimmer 4s ease infinite;
+  color: var(--agent);
 }
 
 /* ── Commit Form (in changes panel) ──────────────────────────── */
@@ -1192,7 +1106,7 @@ input, textarea { caret-color: #5a68b8; }
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   font-family: var(--font);
-  font-size: 12.5px;
+  font-size: var(--fs-base);
   font-weight: 400;
   outline: none;
   resize: vertical;
@@ -1213,7 +1127,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-commit-result {
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   padding: 4px 0;
   font-weight: 500;
 }
@@ -1235,7 +1149,7 @@ input, textarea { caret-color: #5a68b8; }
   border-radius: var(--radius-sm);
   padding: 5px 10px;
   font-family: var(--font);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   outline: none;
   transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
 }
@@ -1251,7 +1165,7 @@ input, textarea { caret-color: #5a68b8; }
 
 .valkka-empty {
   color: var(--t3);
-  font-size: 13px;
+  font-size: var(--fs-base);
   padding: 20px;
   text-align: center;
 }
@@ -1260,7 +1174,7 @@ input, textarea { caret-color: #5a68b8; }
 
 .toast .alert {
   font-family: var(--font);
-  font-size: 12.5px;
+  font-size: var(--fs-base);
   border-radius: var(--radius-md);
   border: 1px solid rgba(255,240,220,0.08);
   background: var(--s2);
@@ -1308,7 +1222,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-activity-chevron {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   color: var(--t4);
   flex-shrink: 0;
   transition: color var(--dur-fast);
@@ -1330,7 +1244,7 @@ input, textarea { caret-color: #5a68b8; }
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 11.5px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -1350,7 +1264,7 @@ input, textarea { caret-color: #5a68b8; }
   white-space: nowrap;
 }
 
-.valkka-mono { font-family: var(--mono); font-size: 11px; }
+.valkka-mono { font-family: var(--mono); font-size: var(--fs-sm); }
 
 /* ── Commit Detail Panel ────────────────────────────────────── */
 
@@ -1379,13 +1293,13 @@ input, textarea { caret-color: #5a68b8; }
 
 .valkka-commit-detail-oid {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--amber);
   font-weight: 600;
 }
 
 .valkka-commit-detail-branch {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   padding: 2px 7px;
   border-radius: 999px;
   background: rgba(200,160,80,0.08);
@@ -1394,7 +1308,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-commit-detail-merge {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   padding: 2px 6px;
   border-radius: 999px;
   background: rgba(91,141,239,0.08);
@@ -1403,7 +1317,7 @@ input, textarea { caret-color: #5a68b8; }
 }
 
 .valkka-commit-detail-message {
-  font-size: 14px;
+  font-size: var(--fs-lg);
   font-weight: 500;
   color: var(--t1);
   line-height: 1.4;
@@ -1412,7 +1326,7 @@ input, textarea { caret-color: #5a68b8; }
 .valkka-commit-detail-meta {
   display: flex;
   gap: 12px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--t3);
 }
 
@@ -1420,7 +1334,7 @@ input, textarea { caret-color: #5a68b8; }
 
 .valkka-commit-detail-parents {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-sm);
   color: var(--t4);
 }
 
