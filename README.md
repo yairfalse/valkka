@@ -1,10 +1,12 @@
 # Valkka
 
-Command center for AI coding agents.
+Context for humans who supervise AI coding agents.
+
+You run 10 or 12 agents across a dozen repos. Without Valkka, you're switching terminals, losing track, running after them. Each agent has context you don't — which files it changed, what branch it's on, whether it's still working or stopped 5 minutes ago. Valkka is a single screen that delivers that context to you: files changing, processes running, what each agent is doing right now. You don't operate it. You watch it.
 
 *Välkkä* — Finnish slang for recess. Short for *välitunti*. The best 20 minutes of the school day: sunny outside, bad sandwich, hateful kids, but for a moment you had hopes that it might be fun. That's the feeling. Agents write code, you supervise — and it doesn't feel like work.
 
-Multi-repo, local-first, no editor. See what your agents are doing, review their changes, commit, push — never leave Valkka.
+Multi-repo, local-first, no editor. Git files, running processes, and the context humans need to stay ahead of their agents.
 
 ## Stack
 

@@ -1,20 +1,43 @@
 defmodule ValkkaWeb.ActivityComponent do
   @moduledoc """
   Curated activity stream with grouped, typed, actionable entries.
-  Every entry is clickable to expand/collapse details.
+  Supports filtering to a focused repo. Shows first 3 files inline
+  without requiring expand click.
   """
 
   use ValkkaWeb, :live_component
 
   @impl true
+  def update(assigns, socket) do
+    entries = assigns.entries
+    filter_mode = Map.get(assigns, :filter_mode, :all)
+    focused_repo_path = Map.get(assigns, :focused_repo_path)
+
+    filtered =
+      if filter_mode == :focused && focused_repo_path do
+        Enum.filter(entries, &(&1.repo_path == focused_repo_path))
+      else
+        entries
+      end
+
+    {:ok,
+     assign(socket,
+       entries: entries,
+       filtered: filtered,
+       filter_mode: filter_mode,
+       focused_repo_path: focused_repo_path
+     )}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="valkka-activity">
-      <div :if={@entries == []} class="valkka-empty">
+      <div :if={@filtered == []} class="valkka-empty">
         No activity yet
       </div>
       <div
-        :for={entry <- @entries}
+        :for={entry <- @filtered}
         class={"valkka-activity-entry type-#{entry.type} #{agent_class(entry)} #{if !entry.collapsed, do: "expanded"}"}
       >
         <div
@@ -32,18 +55,44 @@ defmodule ValkkaWeb.ActivityComponent do
           {entry_subtitle(entry)}
         </div>
 
-        <div :if={!entry.collapsed && entry.files != []} class="valkka-activity-expanded">
+        <%!-- Show first 3 files inline (always visible) --%>
+        <div :if={entry.files != []} class="valkka-activity-files-inline">
+          <div
+            :for={file <- Enum.take(entry.files, 3)}
+            class="valkka-activity-file"
+            phx-click="activity_select_file"
+            phx-value-repo-path={entry.repo_path}
+            phx-value-file={file}
+            phx-value-tab="changes"
+          >
+            {file}
+          </div>
+        </div>
+
+        <%!-- Remaining files behind expand --%>
+        <div :if={!entry.collapsed && length(entry.files) > 3} class="valkka-activity-expanded">
           <div class="valkka-activity-files">
             <div
-              :for={file <- entry.files}
+              :for={file <- Enum.drop(entry.files, 3)}
               class="valkka-activity-file"
               phx-click="activity_select_file"
               phx-value-repo-path={entry.repo_path}
+              phx-value-file={file}
               phx-value-tab="changes"
             >
               {file}
             </div>
           </div>
+        </div>
+
+        <%!-- Expand indicator for entries with > 3 files --%>
+        <div
+          :if={entry.collapsed && length(entry.files) > 3}
+          class="valkka-activity-more"
+          phx-click="toggle_activity_entry"
+          phx-value-id={entry.id}
+        >
+          +{length(entry.files) - 3} more
         </div>
       </div>
     </div>

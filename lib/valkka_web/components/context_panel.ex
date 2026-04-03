@@ -1,39 +1,39 @@
 defmodule ValkkaWeb.Components.ContextPanel do
   @moduledoc """
-  Right panel: Activity stream + Agents tab.
-  Agents tab provides quick glance at active agent sessions.
+  Right panel: Timeline header with filter toggle + activity stream.
   """
 
   use Phoenix.Component
 
-  attr :active_rp_tab, :string, default: "activity"
+  attr :timeline_filter, :atom, default: :all
+  attr :has_focused_repo, :boolean, default: false
   slot :activity
-  slot :agents
 
   def context_panel(assigns) do
     ~H"""
     <aside class="valkka-right-panel">
-      <div class="valkka-rp-tabs">
-        <button
-          class={"valkka-rp-tab #{if @active_rp_tab == "activity", do: "active"}"}
-          phx-click="switch_rp_tab"
-          phx-value-tab="activity"
-        >
-          Activity
-        </button>
-        <button
-          class={"valkka-rp-tab #{if @active_rp_tab == "agents", do: "active"}"}
-          phx-click="switch_rp_tab"
-          phx-value-tab="agents"
-        >
-          Agents
-        </button>
+      <div class="valkka-timeline-header">
+        <span class="valkka-timeline-label">Timeline</span>
+        <span :if={@has_focused_repo} class="valkka-timeline-filter">
+          <span
+            class={"valkka-timeline-option #{if @timeline_filter == :all, do: "active"}"}
+            phx-click="toggle_timeline_filter"
+            phx-value-mode="all"
+          >
+            All
+          </span>
+          <span class="valkka-timeline-sep">|</span>
+          <span
+            class={"valkka-timeline-option #{if @timeline_filter == :focused, do: "active"}"}
+            phx-click="toggle_timeline_filter"
+            phx-value-mode="focused"
+          >
+            Focused
+          </span>
+        </span>
       </div>
-      <div :if={@active_rp_tab == "activity"} class="valkka-rp-body">
+      <div class="valkka-rp-body">
         {render_slot(@activity)}
-      </div>
-      <div :if={@active_rp_tab == "agents"} class="valkka-rp-body" style="padding:8px 0">
-        {render_slot(@agents)}
       </div>
     </aside>
     """

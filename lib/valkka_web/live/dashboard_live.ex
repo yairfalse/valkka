@@ -2,9 +2,9 @@ defmodule ValkkaWeb.DashboardLive do
   @moduledoc """
   Main surface — three-panel layout for multi-repo awareness.
 
-  Left: sidebar with workspace header, nav, repo list
-  Center: focused repo view (graph/changes/diff tabs) or overview/agents view
-  Right: activity stream + agents panel
+  Left: sidebar with workspace header, priority-sorted repo sections
+  Center: command view (workstream cards) or focus view (graph/changes)
+  Right: timeline with activity stream + optional repo filter
   """
 
   use ValkkaWeb, :live_view
@@ -53,7 +53,8 @@ defmodule ValkkaWeb.DashboardLive do
        agent_summary: Valkka.Status.agent_summary(agents),
        agent_start_times: %{},
        agent_tick_ref: nil,
-       active_rp_tab: "activity"
+       timeline_filter: :all,
+       sidebar_quiet_expanded: false
      )}
   end
 
@@ -78,25 +79,20 @@ defmodule ValkkaWeb.DashboardLive do
         repos={@repos}
         selected_path={@selected_path}
         active_view={@active_view}
-        agent_count={@agent_summary.active}
+        agents={@agents}
+        agent_start_times={@agent_start_times}
+        sidebar_quiet_expanded={@sidebar_quiet_expanded}
       />
 
       <div class="valkka-center" style="display:flex;flex-direction:column;overflow:hidden">
         <%= if @active_view == "overview" do %>
           <.live_component
-            module={ValkkaWeb.OverviewComponent}
-            id="overview"
+            module={ValkkaWeb.CommandComponent}
+            id="command"
             repos={@repos}
             agents={@agents}
-          />
-        <% end %>
-
-        <%= if @active_view == "agents" do %>
-          <.live_component
-            module={ValkkaWeb.AgentsComponent}
-            id="agents-view"
-            agents={@agents}
-            repos={@repos}
+            agent_start_times={@agent_start_times}
+            activity={@activity}
           />
         <% end %>
 
@@ -144,36 +140,19 @@ defmodule ValkkaWeb.DashboardLive do
         <% end %>
       </div>
 
-      <.context_panel active_rp_tab={@active_rp_tab}>
+      <.context_panel
+        timeline_filter={@timeline_filter}
+        has_focused_repo={@selected_path != nil}
+      >
         <:activity>
           <.live_component
             module={ValkkaWeb.ActivityComponent}
             id="activity"
             entries={@activity}
+            filter_mode={@timeline_filter}
+            focused_repo_path={@selected_path}
           />
         </:activity>
-        <:agents>
-          <div
-            :if={Enum.any?(@agents, & &1.active)}
-            style="padding:2px 12px 8px;font-size:11.5px;color:var(--t3)"
-          >
-            {Enum.count(@agents, & &1.active)} running
-          </div>
-          <div :for={agent <- Enum.filter(@agents, & &1.active)} class="valkka-agent-card live">
-            <div class="valkka-agent-card-top">
-              <span class="valkka-agent-card-dot live"></span>
-              <span class="valkka-agent-card-name">
-                {agent.name} · {repo_name_for(agent.repo_path, @repos)}
-              </span>
-              <span class="valkka-agent-card-pid">
-                {agent_elapsed(@agent_start_times, @agents, agent.repo_path) || ""}
-              </span>
-            </div>
-          </div>
-          <div :if={!Enum.any?(@agents, & &1.active)} class="valkka-empty">
-            No active agents
-          </div>
-        </:agents>
       </.context_panel>
     </div>
     """
@@ -197,10 +176,6 @@ defmodule ValkkaWeb.DashboardLive do
       end)
 
     {:noreply, socket}
-  end
-
-  def handle_event("switch_rp_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, active_rp_tab: tab)}
   end
 
   def handle_event("switch_tab", %{"tab" => tab}, socket) do
@@ -269,6 +244,20 @@ defmodule ValkkaWeb.DashboardLive do
     end
   end
 
+  def handle_event("key:escape", _params, socket) do
+    socket =
+      socket
+      |> assign(
+        active_view: "overview",
+        selected_path: nil,
+        selected_repo: nil,
+        handle: nil,
+        timeline_filter: :all
+      )
+
+    {:noreply, push_patch(socket, to: "/")}
+  end
+
   def handle_event("key:stage_focused", _params, socket) do
     send_update(ValkkaWeb.ChangesComponent, id: "changes", action: :stage_focused)
     {:noreply, socket}
@@ -320,6 +309,15 @@ defmodule ValkkaWeb.DashboardLive do
     {:noreply, push_event(socket, "confirm-pull", %{})}
   end
 
+  def handle_event("toggle_timeline_filter", %{"mode" => mode}, socket) do
+    filter = if mode == "focused", do: :focused, else: :all
+    {:noreply, assign(socket, timeline_filter: filter)}
+  end
+
+  def handle_event("toggle_sidebar_quiet", _params, socket) do
+    {:noreply, assign(socket, sidebar_quiet_expanded: !socket.assigns.sidebar_quiet_expanded)}
+  end
+
   # ── Info handlers ───────────────────────────────────────────
 
   @impl true
@@ -343,7 +341,6 @@ defmodule ValkkaWeb.DashboardLive do
   end
 
   def handle_info({:file_selected, _file_path, _repo_path}, socket) do
-    # Stay on changes tab when a file is selected
     {:noreply, socket}
   end
 
@@ -626,13 +623,6 @@ defmodule ValkkaWeb.DashboardLive do
   defp format_duration(seconds) when seconds < 60, do: "#{seconds}s"
   defp format_duration(seconds) when seconds < 3600, do: "#{div(seconds, 60)}m"
   defp format_duration(seconds), do: "#{div(seconds, 3600)}h #{div(rem(seconds, 3600), 60)}m"
-
-  defp repo_name_for(path, repos) do
-    case Enum.find(repos, &(&1.path == path)) do
-      nil -> Path.basename(path || "unknown")
-      repo -> repo.name
-    end
-  end
 
   defp valid_repo_path?(path, repos) do
     Enum.any?(repos, &(&1.path == path)) or

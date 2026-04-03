@@ -23,6 +23,12 @@ const KeyboardHook = {
         return
       }
 
+      if (e.key === "Escape") {
+        e.preventDefault()
+        this.pushEvent("key:escape", {})
+        return
+      }
+
       switch (e.key) {
         case "s":
           e.preventDefault()
