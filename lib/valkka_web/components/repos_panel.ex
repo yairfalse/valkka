@@ -63,10 +63,9 @@ defmodule ValkkaWeb.Components.ReposPanel do
         </span>
       </div>
 
-      <div
+      <.link
+        navigate={"/"}
         class={"valkka-nav #{if @active_view == "overview", do: "active"}"}
-        phx-click="switch_view"
-        phx-value-view="overview"
         title="All repos at a glance"
       >
         <span class="valkka-nav-icon">
@@ -85,11 +84,11 @@ defmodule ValkkaWeb.Components.ReposPanel do
               height="5"
               rx="1.2"
               fill="currentColor"
-            />
+              />
           </svg>
         </span>
         <span class="valkka-nav-label">Command</span>
-      </div>
+      </.link>
 
       <div class="valkka-sb-sep"></div>
 
