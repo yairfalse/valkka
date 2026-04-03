@@ -5,6 +5,14 @@ const KeyboardHook = {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return
       if (e.target.isContentEditable) return
 
+      // Cmd/Ctrl + Shift + number → switch views
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key >= "1" && e.key <= "3") {
+        e.preventDefault()
+        const views = ["fleet", "agents", "activity"]
+        this.pushEvent("switch_view", { view: views[parseInt(e.key) - 1] })
+        return
+      }
+
       // Cmd/Ctrl + number → select repo
       if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "9") {
         e.preventDefault()
@@ -15,11 +23,23 @@ const KeyboardHook = {
       // Skip if any modifier is held (except shift)
       if (e.metaKey || e.ctrlKey || e.altKey) return
 
-      // Number keys 1-2: switch center tabs
-      const tabs = ["graph", "changes"]
-      if (e.key >= "1" && e.key <= "2") {
+      // Number keys 1-3: switch center tabs
+      const tabs = ["graph", "changes", "review"]
+      if (e.key >= "1" && e.key <= "3") {
         e.preventDefault()
         this.pushEvent("switch_tab", { tab: tabs[parseInt(e.key) - 1] })
+        return
+      }
+
+      // [ and ] — prev/next repo
+      if (e.key === "[") {
+        e.preventDefault()
+        this.pushEvent("key:prev_repo", {})
+        return
+      }
+      if (e.key === "]") {
+        e.preventDefault()
+        this.pushEvent("key:next_repo", {})
         return
       }
 
@@ -55,6 +75,27 @@ const KeyboardHook = {
         case "b":
           e.preventDefault()
           this.pushEvent("key:toggle_branch", {})
+          break
+        // Review navigation
+        case "j":
+          e.preventDefault()
+          this.pushEvent("key:review_next", {})
+          break
+        case "k":
+          e.preventDefault()
+          this.pushEvent("key:review_prev", {})
+          break
+        case "y":
+          e.preventDefault()
+          this.pushEvent("key:review_mark", {})
+          break
+        case "n":
+          e.preventDefault()
+          this.pushEvent("key:review_skip", {})
+          break
+        case "?":
+          e.preventDefault()
+          this.pushEvent("key:show_help", {})
           break
       }
     }

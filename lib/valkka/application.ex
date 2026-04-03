@@ -13,6 +13,8 @@ defmodule Valkka.Application do
       Valkka.Cache.GraphCache,
       Valkka.Cache.CommitCache,
       Valkka.Cache.StatusCache,
+      Valkka.Cache.ReviewCache,
+      ValkkaWeb.Presence,
       Valkka.Plugin.Registry,
       Valkka.Plugin.Supervisor,
       {Registry, keys: :unique, name: Valkka.Repo.Registry},

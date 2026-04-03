@@ -1,9 +1,9 @@
 // Commit graph — interactive Canvas 2D rendering of the DAG.
-// Warm Nordic palette. Agent commits get square nodes.
+// Cold Nordic palette. Agent commits get square nodes.
 
 const LANE_COLORS = [
-  "#c8a050", "#e5534b", "#5ec4b6", "#a78bfa",
-  "#5b8def", "#f472b6", "#3ecf8e", "#fb923c",
+  "#5b8def", "#e5534b", "#5ec4b6", "#a78bfa",
+  "#e5a445", "#f472b6", "#3ecf8e", "#5b8def",
 ]
 
 const CONF = {
@@ -16,16 +16,16 @@ const CONF = {
   font: "12px 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
   monoFont: "11px 'SF Mono', 'Cascadia Code', 'JetBrains Mono', ui-monospace, monospace",
   tagFont: "10px 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-  bg: "#0e0d0b",
-  textColor: "#e8e4de",
-  dimColor: "#5a5448",
-  mutedColor: "#8a8278",
-  hoverBg: "rgba(255,240,200,0.03)",
-  selectedBg: "rgba(255,240,200,0.06)",
-  branchBg: "rgba(200,160,80,0.08)",
-  branchColor: "#c8a050",
-  branchBorder: "rgba(200,160,80,0.2)",
-  agentColor: "#3ecf8e",
+  bg: "#0a0a0c",
+  textColor: "#ededef",
+  dimColor: "#55555e",
+  mutedColor: "#8b8b96",
+  hoverBg: "rgba(255,255,255,0.03)",
+  selectedBg: "rgba(255,255,255,0.06)",
+  branchBg: "rgba(91,141,239,0.08)",
+  branchColor: "#5b8def",
+  branchBorder: "rgba(91,141,239,0.20)",
+  agentColor: "#5b8def",
   laneLineWidth: 1.5,
   laneLineAlpha: 0.25,
 }

@@ -1,7 +1,7 @@
 defmodule ValkkaWeb.Components.FocusPanel do
   @moduledoc """
   Center panel: topbar with breadcrumbs/pills/actions, then tabbed content.
-  Tabs: Graph, Changes (with inline diff).
+  Tabs: Graph, Changes, Review.
   """
 
   use Phoenix.Component
@@ -10,8 +10,11 @@ defmodule ValkkaWeb.Components.FocusPanel do
   attr :active_tab, :string, default: "graph"
   attr :active_agent, :map, default: nil
   attr :agent_elapsed, :string, default: nil
+  attr :review_count, :integer, default: 0
+  attr :presence_users, :list, default: []
   slot :graph
   slot :changes
+  slot :review
 
   def focus_panel(assigns) do
     ~H"""
@@ -52,11 +55,24 @@ defmodule ValkkaWeb.Components.FocusPanel do
           <span :if={@agent_elapsed} class="valkka-agent-timer">{@agent_elapsed}</span>
         </span>
         <span
+          :if={@review_count > 0}
+          class="valkka-pill review"
+          title={"#{@review_count} agent commit(s) to review"}
+        >
+          {"⊘ #{@review_count}"}
+        </span>
+        <span
           :if={Map.get(@selected_repo, :dirty_count, 0) > 0}
           class="valkka-pill changes"
           title={"#{@selected_repo.dirty_count} uncommitted change(s)"}
         >
           {"◇ #{@selected_repo.dirty_count}"}
+        </span>
+
+        <%!-- Teammate presence pills --%>
+        <span :for={user <- @presence_users} class="valkka-pill presence" title={user.user_name}>
+          <span class="valkka-presence-dot" style={"background:#{user.color}"} />
+          {user.user_name}
         </span>
 
         <span class="valkka-spacer"></span>
@@ -100,6 +116,17 @@ defmodule ValkkaWeb.Components.FocusPanel do
             {@selected_repo.dirty_count}
           </span>
         </button>
+        <button
+          class={"valkka-tab #{if @active_tab == "review", do: "active"}"}
+          phx-click="switch_tab"
+          phx-value-tab="review"
+          title="Review agent commits (3)"
+        >
+          Review
+          <span :if={@review_count > 0} class="valkka-tab-count accent">
+            {@review_count}
+          </span>
+        </button>
       </div>
 
       <div :if={@selected_repo} style="flex:1;overflow:hidden;display:flex;flex-direction:column">
@@ -108,6 +135,9 @@ defmodule ValkkaWeb.Components.FocusPanel do
         </div>
         <div :if={@active_tab == "changes"} class="valkka-panel active">
           {render_slot(@changes)}
+        </div>
+        <div :if={@active_tab == "review"} class="valkka-panel active">
+          {render_slot(@review)}
         </div>
       </div>
 
