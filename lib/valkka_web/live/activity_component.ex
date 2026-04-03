@@ -62,6 +62,7 @@ defmodule ValkkaWeb.ActivityComponent do
             class="valkka-activity-file"
             phx-click="activity_select_file"
             phx-value-repo-path={entry.repo_path}
+            phx-value-file={file}
             phx-value-tab="changes"
           >
             {file}
@@ -76,6 +77,7 @@ defmodule ValkkaWeb.ActivityComponent do
               class="valkka-activity-file"
               phx-click="activity_select_file"
               phx-value-repo-path={entry.repo_path}
+              phx-value-file={file}
               phx-value-tab="changes"
             >
               {file}
