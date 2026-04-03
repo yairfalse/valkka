@@ -7,9 +7,20 @@ defmodule ValkkaWeb.ActivityComponent do
   use ValkkaWeb, :live_component
 
   @impl true
+  def update(assigns, socket) do
+    {:ok,
+     assign(socket,
+       entries: assigns.entries,
+       full_view: Map.get(assigns, :full_view, false),
+       repos: Map.get(assigns, :repos, []),
+       agents: Map.get(assigns, :agents, [])
+     )}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
-    <div class="valkka-activity">
+    <div class={"valkka-activity #{if @full_view, do: "full-view"}"}>
       <div :if={@entries == []} class="valkka-empty">
         No activity yet
       </div>

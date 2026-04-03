@@ -1,14 +1,16 @@
 defmodule ValkkaWeb.Components.ReposPanel do
   @moduledoc """
-  Left sidebar: workspace header, top-level nav, repo list, footer.
+  Left sidebar: workspace header, top-level nav (Fleet/Agents/Activity),
+  repo list, team presence footer.
   """
 
   use Phoenix.Component
 
   attr :repos, :list, required: true
   attr :selected_path, :string, default: nil
-  attr :active_view, :string, default: "repo"
+  attr :active_view, :string, default: "fleet"
   attr :agent_count, :integer, default: 0
+  attr :presence_users, :list, default: []
 
   def repos_panel(assigns) do
     ~H"""
@@ -31,10 +33,10 @@ defmodule ValkkaWeb.Components.ReposPanel do
       </div>
 
       <div
-        class={"valkka-nav #{if @active_view == "overview", do: "active"}"}
+        class={"valkka-nav #{if @active_view == "fleet", do: "active"}"}
         phx-click="switch_view"
-        phx-value-view="overview"
-        title="All repos at a glance"
+        phx-value-view="fleet"
+        title="Fleet — all repos at a glance"
       >
         <span class="valkka-nav-icon">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -55,7 +57,7 @@ defmodule ValkkaWeb.Components.ReposPanel do
             />
           </svg>
         </span>
-        <span class="valkka-nav-label">Overview</span>
+        <span class="valkka-nav-label">Fleet</span>
       </div>
 
       <div
@@ -76,6 +78,25 @@ defmodule ValkkaWeb.Components.ReposPanel do
         </span>
         <span class="valkka-nav-label">Agents</span>
         <span :if={@agent_count > 0} class="valkka-nav-count accent">{@agent_count}</span>
+      </div>
+
+      <div
+        class={"valkka-nav #{if @active_view == "activity", do: "active"}"}
+        phx-click="switch_view"
+        phx-value-view="activity"
+        title="Activity stream"
+      >
+        <span class="valkka-nav-icon">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path
+              d="M2 3h9M2 6.5h6M2 10h8"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+        <span class="valkka-nav-label">Activity</span>
       </div>
 
       <div class="valkka-sb-sep"></div>
@@ -107,18 +128,16 @@ defmodule ValkkaWeb.Components.ReposPanel do
       </div>
 
       <div class="valkka-sb-footer">
-        <div class="valkka-nav">
-          <span class="valkka-nav-icon">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <rect x=".5" y=".5" width="12" height="12" rx="2" stroke="currentColor" /><path
-                d="M3 4.5l2.5 2.5L3 9.5"
-                stroke="currentColor"
-                stroke-width="1.2"
-                stroke-linecap="round"
-              /><path d="M7.5 9.5H10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-            </svg>
+        <div :if={@presence_users != []} class="valkka-sb-presence">
+          <span
+            :for={user <- Enum.take(@presence_users, 4)}
+            class="valkka-presence-dot"
+            style={"background:#{user.color}"}
+            title={user.user_name}
+          />
+          <span class="valkka-sb-presence-label">
+            {length(@presence_users)} online
           </span>
-          <span class="valkka-nav-label">Terminal</span>
         </div>
         <div class="valkka-nav">
           <span class="valkka-nav-icon">

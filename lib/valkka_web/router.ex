@@ -17,7 +17,7 @@ defmodule ValkkaWeb.Router do
   scope "/", ValkkaWeb do
     pipe_through :browser
 
-    live "/", DashboardLive
+    live "/", CommandCenterLive
   end
 
   # Other scopes may use custom stacks.
